@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { DarkModeToggle } from '@/components/dark-mode-toggle'
+import { QRCode } from '@/components/qr-code'
+import { InteractiveGridPattern } from '@/components/ui/interactive-grid-pattern'
+import { cn } from '@/lib/utils'
 
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -24,10 +27,21 @@ export default function Home() {
       }`}>
         <div className="flex items-center w-full max-w-4xl">
           <div className="flex items-center flex-shrink-0">
-            <div className="w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
+            <div className="relative w-8 h-8">
+              {/* Outer circle with gradient */}
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full"></div>
+              {/* White ring */}
+              <div className="absolute inset-0.5 bg-white rounded-full"></div>
+              {/* Inner circle with gradient */}
+              <div className="absolute inset-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+                {/* Chat bubble icon */}
+                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12c0 1.54.36 3.04 1.05 4.36L2 22l5.64-1.05C9.96 21.64 11.46 22 13 22h-1c5.52 0 10-4.48 10-10S17.52 2 12 2z"/>
+                  <circle cx="8" cy="12" r="1"/>
+                  <circle cx="12" cy="12" r="1"/>
+                  <circle cx="16" cy="12" r="1"/>
+                </svg>
+              </div>
             </div>
             <h1 className={`ml-3 text-xl font-bold transition-colors duration-300 ${
               isScrolled ? 'text-gray-900 dark:text-white' : 'text-white'
@@ -58,6 +72,18 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
         
+        {/* Interactive Grid Pattern */}
+        <InteractiveGridPattern
+          className={cn(
+            "absolute inset-0 h-full w-full",
+            "[mask-image:radial-gradient(600px_circle_at_center,white,transparent)]",
+            "opacity-40"
+          )}
+          squares={[35, 35]}
+          width={35}
+          height={35}
+        />
+        
         {/* Floating Elements - Subtieler */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse"></div>
@@ -65,52 +91,93 @@ export default function Home() {
           <div className="absolute top-1/2 left-1/3 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-500"></div>
         </div>
 
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-8 leading-tight">
-            Revolutioneer Je Bedrijf
-            <br />
-            <span className="bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent">
-              Met Slimme Tools
-            </span>
-          </h1>
-          
-          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-4xl mx-auto leading-relaxed">
-            Ontdek hoe onze alles-in-één platform je helpt met AI-assistentie, 
-            facturatie, offertes en meer – allemaal op één plek.
-          </p>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Main Content */}
+            <div className="lg:col-span-8 text-center lg:text-left">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-8 leading-tight">
+                Revolutioneer Je Bedrijf
+                <br />
+                <span className="bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent">
+                  Met Slimme Tools
+                </span>
+              </h1>
+              
+              <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed">
+                Ontdek hoe onze alles-in-één platform je helpt met AI-assistentie, 
+                facturatie, offertes en meer – allemaal op één plek.
+              </p>
 
-          <p className="text-lg text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Welkom bij ZzpChat, waar innovatie en efficiëntie samenkomen. Bespaar tijd en groei je business 
-            met geavanceerde functies zoals AI-gedreven inzichten, naadloze WhatsApp-integratie en automatische urenregistratie.
-          </p>
+              <p className="text-lg text-white/80 mb-12 leading-relaxed">
+                Welkom bij ZzpChat, waar innovatie en efficiëntie samenkomen. Bespaar tijd en groei je business 
+                met geavanceerde functies zoals AI-gedreven inzichten, naadloze WhatsApp-integratie en automatische urenregistratie.
+              </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <a
-              href="/login"
-              className="bg-white text-indigo-600 px-8 py-4 rounded-2xl text-lg font-semibold hover:bg-gray-50 transition-all transform hover:scale-105 shadow-xl"
-            >
-              Probeer Gratis Uit – Geen Creditcard Nodig!
-            </a>
-            <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-4">
-              <code className="text-white font-mono text-sm">npm install zzpchat</code>
-            </div>
-          </div>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
+                <a
+                  href="/login"
+                  className="bg-white text-indigo-600 px-8 py-4 rounded-2xl text-lg font-semibold hover:bg-gray-50 transition-all transform hover:scale-105 shadow-xl"
+                >
+                  Probeer Gratis Uit – Geen Creditcard Nodig!
+                </a>
+              </div>
 
-          {/* Trust Indicators */}
-          <div className="flex items-center justify-center space-x-8 text-white/70">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">10k+</div>
-              <div className="text-sm">ZZP'ers wereldwijd</div>
+              {/* Trust Indicators */}
+              <div className="flex items-center justify-center lg:justify-start space-x-8 text-white/70">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-white">10k+</div>
+                  <div className="text-sm">ZZP'ers wereldwijd</div>
+                </div>
+                <div className="w-px h-8 bg-white/30"></div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-white">99.9%</div>
+                  <div className="text-sm">Uptime</div>
+                </div>
+                <div className="w-px h-8 bg-white/30"></div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-white">90%</div>
+                  <div className="text-sm">Tijd besparen</div>
+                </div>
+              </div>
             </div>
-            <div className="w-px h-8 bg-white/30"></div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">99.9%</div>
-              <div className="text-sm">Uptime</div>
-            </div>
-            <div className="w-px h-8 bg-white/30"></div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">90%</div>
-              <div className="text-sm">Tijd besparen</div>
+
+            {/* QR Code Section */}
+            <div className="lg:col-span-4 flex flex-col items-center justify-center">
+              <div className="relative">
+                <QRCode 
+                  size="lg" 
+                  variant="hero" 
+                  className="transform hover:scale-105 transition-transform duration-300 hidden sm:block" 
+                />
+                <QRCode 
+                  size="md" 
+                  variant="hero" 
+                  className="transform hover:scale-105 transition-transform duration-300 sm:hidden" 
+                />
+                
+                {/* Scan me indicator */}
+                <div className="absolute -right-16 top-1/2 transform -translate-y-1/2 hidden xl:block">
+                  <div className="flex items-center">
+                    <svg 
+                      className="w-12 h-8 text-white/60 mr-2" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                      style={{ transform: 'scaleX(-1)' }}
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M17 8l4 4m0 0l-4 4m4-4H3" 
+                      />
+                    </svg>
+                    <span className="text-white/70 font-handwriting text-lg">
+                      scan me
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -554,20 +621,62 @@ export default function Home() {
 
       {/* CTA Section */}
       <section className="py-24 bg-gradient-to-r from-indigo-600 to-purple-600">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-white mb-6">
-            Klaar om ZzpChat te proberen?
-          </h2>
-          <p className="text-xl text-indigo-100 mb-12">
-            Start je WhatsApp AI-assistent in een oogwenk om de kracht van ZzpChat te ervaren. 
-            Probeer gratis uit – geen creditcard nodig.
-          </p>
-          <a
-            href="/login"
-            className="bg-white text-indigo-600 px-8 py-4 rounded-2xl text-lg font-semibold hover:bg-gray-50 transition-all transform hover:scale-105 shadow-xl inline-block"
-          >
-            Probeer Gratis Uit – Geen Creditcard Nodig!
-          </a>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Content */}
+            <div className="text-center lg:text-left">
+              <h2 className="text-4xl font-bold text-white mb-6">
+                Klaar om ZzpChat te proberen?
+              </h2>
+              <p className="text-xl text-indigo-100 mb-8">
+                Start je WhatsApp AI-assistent in een oogwenk om de kracht van ZzpChat te ervaren. 
+                Probeer gratis uit – geen creditcard nodig.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <a
+                  href="/login"
+                  className="bg-white text-indigo-600 px-8 py-4 rounded-2xl text-lg font-semibold hover:bg-gray-50 transition-all transform hover:scale-105 shadow-xl inline-block"
+                >
+                  Probeer Gratis Uit – Geen Creditcard Nodig!
+                </a>
+                <a
+                  href="/dashboard/whatsapp-setup"
+                  className="bg-white/10 backdrop-blur-sm text-white border-2 border-white/30 px-8 py-4 rounded-2xl text-lg font-semibold hover:bg-white/20 transition-all transform hover:scale-105 inline-block"
+                >
+                  WhatsApp Setup
+                </a>
+              </div>
+            </div>
+
+            {/* QR Code */}
+            <div className="flex flex-col items-center justify-center">
+              <div className="relative">
+                <QRCode 
+                  size="lg" 
+                  variant="cta" 
+                  className="transform hover:scale-105 transition-transform duration-300 hidden sm:block" 
+                />
+                <QRCode 
+                  size="md" 
+                  variant="cta" 
+                  className="transform hover:scale-105 transition-transform duration-300 sm:hidden" 
+                />
+                
+                {/* Floating elements around QR */}
+                <div className="absolute -top-4 -left-4 w-8 h-8 bg-white/20 rounded-full animate-pulse"></div>
+                <div className="absolute -bottom-4 -right-4 w-6 h-6 bg-white/30 rounded-full animate-pulse delay-500"></div>
+                <div className="absolute top-1/2 -right-8 w-4 h-4 bg-white/25 rounded-full animate-pulse delay-1000"></div>
+              </div>
+              
+              {/* Alternative text for mobile */}
+              <div className="mt-4 lg:hidden">
+                <p className="text-white/70 text-center text-sm">
+                  Scan de QR-code met je telefoon camera of WhatsApp om direct te beginnen
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

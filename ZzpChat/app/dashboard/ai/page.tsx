@@ -13,7 +13,6 @@ export default function AIPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedModel, setSelectedModel] = useState('Standard')
 
   const chatHistory = [
     { id: '1', title: 'Factuur voor Jan Jansen', preview: '€500 - 10 min geleden', timestamp: new Date() },
@@ -233,23 +232,6 @@ export default function AIPage() {
               </svg>
             </button>
 
-            {/* Model Selector */}
-            <div className="relative">
-              <select
-                value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
-                className="appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                <option value="Standard">Standard</option>
-                <option value="Creative">Creative</option>
-                <option value="Professional">Professional</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </div>
 
             {/* Message Input */}
             <div className="flex-1">

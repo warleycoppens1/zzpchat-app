@@ -48,7 +48,7 @@ export default function DashboardPage() {
             <div>
               <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Afgeronde Projecten</p>
               <p className="text-3xl font-bold text-gray-900 dark:text-white">10</p>
-              <p className="text-gray-500 text-sm mt-1">
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
                 <span className="inline-flex items-center">
                   <svg className="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
@@ -69,9 +69,9 @@ export default function DashboardPage() {
         <div className="rounded-2xl p-6 shadow-lg bg-white dark:bg-gray-800 transition-colors duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Lopende Projecten</p>
-              <p className="text-3xl font-bold text-gray-900">12</p>
-              <p className="text-gray-500 text-sm mt-1">
+              <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Lopende Projecten</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">12</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
                 <span className="inline-flex items-center">
                   <svg className="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
@@ -80,8 +80,8 @@ export default function DashboardPage() {
                 </span>
               </p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
@@ -92,12 +92,12 @@ export default function DashboardPage() {
         <div className="rounded-2xl p-6 shadow-lg bg-white dark:bg-gray-800 transition-colors duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Wachtende Projecten</p>
-              <p className="text-3xl font-bold text-gray-900">2</p>
-              <p className="text-gray-500 text-sm mt-1">In overleg</p>
+              <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Wachtende Projecten</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">2</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">In overleg</p>
             </div>
-            <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
@@ -116,7 +116,7 @@ export default function DashboardPage() {
                 <button className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors">
                   + Nieuw Project
                 </button>
-                <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
+                <button className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                   Data Importeren
                 </button>
               </div>
@@ -134,8 +134,8 @@ export default function DashboardPage() {
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <h3 className="font-medium text-gray-900">Nieuwe Factuur</h3>
-                    <p className="text-sm text-gray-500">Maak een nieuwe factuur aan</p>
+                    <h3 className="font-medium text-gray-900 dark:text-white">Nieuwe Factuur</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Maak een nieuwe factuur aan</p>
                   </div>
                 </div>
               </a>
@@ -151,8 +151,8 @@ export default function DashboardPage() {
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <h3 className="font-medium text-gray-900">Nieuwe Offerte</h3>
-                    <p className="text-sm text-gray-500">Stel een offerte op</p>
+                    <h3 className="font-medium text-gray-900 dark:text-white">Nieuwe Offerte</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Stel een offerte op</p>
                   </div>
                 </div>
               </a>
@@ -168,8 +168,8 @@ export default function DashboardPage() {
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <h3 className="font-medium text-gray-900">Uren Registreren</h3>
-                    <p className="text-sm text-gray-500">Voeg uren toe aan projecten</p>
+                    <h3 className="font-medium text-gray-900 dark:text-white">Uren Registreren</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Voeg uren toe aan projecten</p>
                   </div>
                 </div>
               </a>
@@ -185,8 +185,8 @@ export default function DashboardPage() {
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <h3 className="font-medium text-gray-900">AI Assistent</h3>
-                    <p className="text-sm text-gray-500">Start een AI gesprek</p>
+                    <h3 className="font-medium text-gray-900 dark:text-white">AI Assistent</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Start een AI gesprek</p>
                   </div>
                 </div>
               </a>
@@ -198,11 +198,11 @@ export default function DashboardPage() {
         <div className="space-y-6">
           {/* Reminders Card */}
           <div className="rounded-2xl p-6 shadow-lg bg-white dark:bg-gray-800 transition-colors duration-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Herinneringen</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Herinneringen</h3>
             <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <h4 className="font-medium text-gray-900">Meeting met Arc Company</h4>
-                <p className="text-sm text-gray-600">Tijd: 14:00 - 16:00</p>
+              <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                <h4 className="font-medium text-gray-900 dark:text-white">Meeting met Arc Company</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Tijd: 14:00 - 16:00</p>
                 <button className="mt-3 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center">
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -216,7 +216,7 @@ export default function DashboardPage() {
           {/* AI Conversations */}
           <div className="rounded-2xl p-6 shadow-lg bg-white dark:bg-gray-800 transition-colors duration-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">AI Gesprekken</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">AI Gesprekken</h3>
               <span className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded-full">8 vandaag</span>
             </div>
             <div className="space-y-3">
@@ -227,8 +227,8 @@ export default function DashboardPage() {
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">Factuur voor Jan Jansen</p>
-                  <p className="text-xs text-gray-500">€500 - 10 min geleden</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Factuur voor Jan Jansen</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">€500 - 10 min geleden</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
@@ -238,8 +238,8 @@ export default function DashboardPage() {
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">Offerte Bouwbedrijf X</p>
-                  <p className="text-xs text-gray-500">€1,200 - 1 uur geleden</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Offerte Bouwbedrijf X</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">€1,200 - 1 uur geleden</p>
                 </div>
               </div>
             </div>

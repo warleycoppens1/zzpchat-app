@@ -1,9 +1,40 @@
 'use client'
 
 import { useTheme } from './theme-provider'
+import { useState, useEffect } from 'react'
 
 export function DarkModeToggle() {
   const { theme, toggleTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    // Return a placeholder to prevent hydration mismatch
+    return (
+      <button
+        className="relative p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+        aria-label="Toggle dark mode"
+        disabled
+      >
+        <svg 
+          className="w-5 h-5 text-gray-600 dark:text-gray-300" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" 
+          />
+        </svg>
+      </button>
+    )
+  }
 
   return (
     <button

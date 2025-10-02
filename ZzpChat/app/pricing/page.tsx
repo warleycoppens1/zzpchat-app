@@ -11,10 +11,21 @@ export default function PricingPage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <div className="flex-shrink-0 flex items-center">
-                <div className="w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
+                <div className="relative w-8 h-8">
+                  {/* Outer circle with gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full"></div>
+                  {/* White ring */}
+                  <div className="absolute inset-0.5 bg-white dark:bg-gray-900 rounded-full"></div>
+                  {/* Inner circle with gradient */}
+                  <div className="absolute inset-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+                    {/* Chat bubble icon */}
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12c0 1.54.36 3.04 1.05 4.36L2 22l5.64-1.05C9.96 21.64 11.46 22 13 22h-1c5.52 0 10-4.48 10-10S17.52 2 12 2z"/>
+                      <circle cx="8" cy="12" r="1"/>
+                      <circle cx="12" cy="12" r="1"/>
+                      <circle cx="16" cy="12" r="1"/>
+                    </svg>
+                  </div>
                 </div>
                 <h1 className="ml-3 text-xl font-bold text-gray-900 dark:text-white">ZzpChat</h1>
               </div>

@@ -68,22 +68,23 @@ export default function DashboardLayout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              {/* Sidebar Toggle Button */}
-              <button
-                onClick={toggleSidebar}
-                className="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 mr-3"
-                aria-label="Toggle sidebar"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-              
+              {/* Logo moved to far left */}
               <div className="flex-shrink-0 flex items-center">
-                <div className="w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
+                <div className="relative w-8 h-8">
+                  {/* Outer circle with gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full"></div>
+                  {/* White ring */}
+                  <div className="absolute inset-0.5 bg-white dark:bg-gray-800 rounded-full"></div>
+                  {/* Inner circle with gradient */}
+                  <div className="absolute inset-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+                    {/* Chat bubble icon */}
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12c0 1.54.36 3.04 1.05 4.36L2 22l5.64-1.05C9.96 21.64 11.46 22 13 22h-1c5.52 0 10-4.48 10-10S17.52 2 12 2z"/>
+                      <circle cx="8" cy="12" r="1"/>
+                      <circle cx="12" cy="12" r="1"/>
+                      <circle cx="16" cy="12" r="1"/>
+                    </svg>
+                  </div>
                 </div>
                 <h1 className="ml-3 text-xl font-bold text-gray-900 dark:text-white">ZzpChat</h1>
               </div>
@@ -179,6 +180,35 @@ export default function DashboardLayout({
           <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-colors duration-200">
             <div className="flex-grow flex flex-col">
               <nav className="flex-1 px-2 space-y-1">
+                {/* Hoofdmenu Titel met Hamburger Menu */}
+                {!sidebarCollapsed && (
+                  <div className="px-2 mb-4 flex items-center justify-between">
+                    <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Hoofdmenu</h3>
+                    <button
+                      onClick={toggleSidebar}
+                      className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                      aria-label="Toggle sidebar"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+                {/* Hamburger menu voor collapsed sidebar */}
+                {sidebarCollapsed && (
+                  <div className="px-2 mb-4 flex justify-center">
+                    <button
+                      onClick={toggleSidebar}
+                      className="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                      aria-label="Toggle sidebar"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
                 <div className="space-y-1">
                   <a
                     href="/dashboard"
@@ -280,34 +310,66 @@ export default function DashboardLayout({
                     </svg>
                     {!sidebarCollapsed && 'Urenregistratie'}
                   </a>
+                      <a
+                        href="/dashboard/integrations"
+                        className={`${
+                          pathname === '/dashboard/integrations' 
+                            ? 'bg-indigo-50 dark:bg-indigo-900/50 border-indigo-500 text-indigo-700 dark:text-indigo-300 border-l-4' 
+                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                        } group flex items-center px-2 py-2 text-sm font-medium rounded-xl transition-colors duration-200 ${
+                          sidebarCollapsed ? 'justify-center' : ''
+                        }`}
+                        title={sidebarCollapsed ? 'Integraties' : ''}
+                      >
+                        <svg className={`h-5 w-5 ${
+                          pathname === '/dashboard/integrations' 
+                            ? 'text-indigo-500' 
+                            : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-400'
+                        } ${sidebarCollapsed ? '' : 'mr-3'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                        {!sidebarCollapsed && 'Integraties'}
+                      </a>
+                      <a
+                        href="/dashboard/contacts"
+                        className={`${
+                          pathname === '/dashboard/contacts' 
+                            ? 'bg-indigo-50 dark:bg-indigo-900/50 border-indigo-500 text-indigo-700 dark:text-indigo-300 border-l-4' 
+                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                        } group flex items-center px-2 py-2 text-sm font-medium rounded-xl transition-colors duration-200 ${
+                          sidebarCollapsed ? 'justify-center' : ''
+                        }`}
+                        title={sidebarCollapsed ? 'Contacten' : ''}
+                      >
+                        <svg className={`h-5 w-5 ${
+                          pathname === '/dashboard/contacts' 
+                            ? 'text-indigo-500' 
+                            : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-400'
+                        } ${sidebarCollapsed ? '' : 'mr-3'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        {!sidebarCollapsed && 'Contacten'}
+                      </a>
                   <a
-                    href="/dashboard/integrations"
+                    href="/dashboard/whatsapp-setup"
                     className={`${
-                      pathname === '/dashboard/integrations' 
+                      pathname === '/dashboard/whatsapp-setup' 
                         ? 'bg-indigo-50 dark:bg-indigo-900/50 border-indigo-500 text-indigo-700 dark:text-indigo-300 border-l-4' 
                         : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                     } group flex items-center px-2 py-2 text-sm font-medium rounded-xl transition-colors duration-200 ${
                       sidebarCollapsed ? 'justify-center' : ''
                     }`}
-                    title={sidebarCollapsed ? 'Integraties' : ''}
+                    title={sidebarCollapsed ? 'WhatsApp Setup' : ''}
                   >
                     <svg className={`h-5 w-5 ${
-                      pathname === '/dashboard/integrations' 
+                      pathname === '/dashboard/whatsapp-setup' 
                         ? 'text-indigo-500' 
                         : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-400'
-                    } ${sidebarCollapsed ? '' : 'mr-3'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    } ${sidebarCollapsed ? '' : 'mr-3'}`} fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
                     </svg>
-                    {!sidebarCollapsed && 'Integraties'}
+                    {!sidebarCollapsed && 'WhatsApp Setup'}
                   </a>
-                </div>
-                
-                <div className="pt-4">
-                  {!sidebarCollapsed && (
-                    <div className="px-2 mb-2">
-                      <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Instellingen</h3>
-                    </div>
-                  )}
                   <a
                     href="/dashboard/settings"
                     className={`${
