@@ -1,0 +1,705 @@
+{
+  "name": "ZzpChat Hybrid Agent with Feedback & RAG - Updated",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "zzpchat-webhook",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-whatsapp",
+      "name": "WhatsApp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse WhatsApp webhook data\nconst body = $input.all()[0].json.body;\n\n// Extract message data from WhatsApp webhook\nconst entry = body.entry?.[0];\nconst change = entry?.changes?.[0];\nconst value = change?.value;\nconst messages = value?.messages || [];\nconst contacts = value?.contacts || [];\n\nif (messages.length === 0) {\n  return [{ json: { skip: true, reason: 'No messages found' } }];\n}\n\nconst message = messages[0];\nconst contact = contacts[0];\n\nreturn [{\n  json: {\n    messageId: message.id,\n    from: message.from,\n    timestamp: message.timestamp,\n    messageType: message.type,\n    text: message.text?.body || '',\n    audioId: message.audio?.id || message.voice?.id || null,\n    contactName: contact?.profile?.name || 'Unknown',\n    phone: message.from\n  }\n}];"
+      },
+      "id": "parse-whatsapp-data",
+      "name": "Parse WhatsApp Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.ZZPCHAT_API_URL}}/api/users/resolve-by-phone",
+        "method": "POST",
+        "jsonParameters": true,
+        "body": {
+          "phone": "={{$json[\"phone\"]}}"
+        }
+      },
+      "id": "resolve-user",
+      "name": "Resolve UserID by Phone",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json[\"userId\"]}}",
+              "value2": "unknown"
+            }
+          ]
+        }
+      },
+      "id": "error-user-not-found",
+      "name": "If User Not Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_NUMBER_ID}}/messages",
+        "method": "POST",
+        "jsonParameters": true,
+        "body": {
+          "to": "={{$json[\"phone\"]}}",
+          "type": "text",
+          "text": {
+            "body": "❌ Account niet gevonden. Registreer je eerst op onze website: {{$env.ZZPCHAT_API_URL}}/register"
+          }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "httpHeaderAuth": {
+          "name": "Authorization",
+          "value": "Bearer {{ $credentials.whatsappToken }}"
+        }
+      },
+      "id": "send-error-message",
+      "name": "Send Error Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1000, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.ZZPCHAT_API_URL}}/api/drafts/pending",
+        "method": "POST",
+        "jsonParameters": true,
+        "body": {
+          "userId": "={{$json[\"userId\"]}}"
+        }
+      },
+      "id": "check-pending-drafts",
+      "name": "Check Pending Drafts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [800, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json[\"hasPendingDraft\"]}}",
+              "operation": "isTrue"
+            }
+          ]
+        }
+      },
+      "id": "if-pending-draft",
+      "name": "If Pending Draft",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Handle draft feedback from user\nconst userResponse = $json.text || '';\nconst draftId = $json.pendingDraftId || 'temp_draft';\nconst userId = $json.userId;\n\n// Improved action detection with regex\nlet action = 'unknown';\nconst lowerResponse = userResponse.toLowerCase();\nif (/\\b(ja|bevestig|ok|yes|confirm)\\b/i.test(lowerResponse)) {\n  action = 'confirm';\n} else if (/\\b(verstuur|send|verzend)\\b/i.test(lowerResponse)) {\n  action = 'send';\n} else if (/\\b(wijzig|change|edit|modify)\\b/i.test(lowerResponse)) {\n  action = 'modify';\n} else if (/\\b(annuleer|cancel|nee|no)\\b/i.test(lowerResponse)) {\n  action = 'cancel';\n} else {\n  action = 'modify'; // Default to modify\n}\n\nreturn [{\n  json: {\n    draftId: draftId,\n    userId: userId,\n    action: action,\n    userResponse: userResponse,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "draft-update-handler",
+      "name": "Handle Draft Feedback",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.ZZPCHAT_API_URL}}/api/drafts/update",
+        "method": "POST",
+        "jsonParameters": true,
+        "body": {
+          "draftId": "={{$json[\"draftId\"]}}",
+          "action": "={{$json[\"action\"]}}",
+          "userId": "={{$json[\"userId\"]}}",
+          "userResponse": "={{$json[\"userResponse\"]}}"
+        }
+      },
+      "id": "update-draft",
+      "name": "Update Draft in Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1400, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json[\"messageType\"]}}",
+              "value2": "audio"
+            },
+            {
+              "value1": "={{$json[\"messageType\"]}}",
+              "value2": "voice"
+            }
+          ]
+        }
+      },
+      "id": "check-message-type",
+      "name": "Check Message Type",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1200, 500]
+    },
+    {
+      "parameters": {
+        "url": "https://graph.facebook.com/v18.0/{{ $json.audioId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "httpHeaderAuth": {
+          "name": "Authorization",
+          "value": "Bearer {{ $credentials.whatsappToken }}"
+        }
+      },
+      "id": "get-audio-metadata",
+      "name": "Get Audio Metadata",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1400, 500]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "responseFormat": "file",
+        "dataPropertyName": "data",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "httpHeaderAuth": {
+          "name": "Authorization",
+          "value": "Bearer {{ $credentials.whatsappToken }}"
+        }
+      },
+      "id": "download-audio-binary",
+      "name": "Download Audio Binary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1600, 500]
+    },
+    {
+      "parameters": {
+        "operation": "transcribe",
+        "model": "whisper-1",
+        "binaryPropertyName": "data",
+        "language": "nl",
+        "prompt": "Dit is een zakelijk gesprek in het Nederlands over administratie, facturen, offertes, of urenregistratie."
+      },
+      "id": "transcribe-audio",
+      "name": "Transcribe Audio",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [1800, 500]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Prepare query for AI processing\nconst userId = $json.userId || 'unknown';\nconst query = $json.transcription || $json.text || '';\nconst phone = $json.phone;\nconst contactName = $json.contactName || 'Gebruiker';\nconst originalTimestamp = $json.timestamp;\n\nreturn [{\n  json: {\n    userId: userId,\n    query: query,\n    phone: phone,\n    contactName: contactName,\n    timestamp: originalTimestamp\n  }\n}];"
+      },
+      "id": "prepare-query",
+      "name": "Prepare Query",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "operation": "chat",
+        "model": "gpt-4",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Je bent een AI-assistent voor ZzpChat. Analyseer gebruikersvragen en bepaal intent en complexiteit.\n\nGeef output als JSON:\n{\n  \"intent\": \"urenregistratie|factuur|offerte|contacten|email|kalender|agent\",\n  \"provider\": \"gmail|outlook|none\",\n  \"timeRange\": {\n    \"from\": \"2025-01-01\",\n    \"to\": \"2025-01-31\"\n  },\n  \"entities\": {\n    \"bedrag\": \"1500\",\n    \"klant\": \"ABC Bedrijf\",\n    \"project\": \"Website\",\n    \"uren\": \"8\"\n  },\n  \"complexity\": \"simple|complex\"\n}\n\nGebruik 'simple' voor directe, eenvoudige taken. Gebruik 'complex' voor taken die context, meerdere stappen, of persoonlijke data vereisen."
+            },
+            {
+              "role": "user",
+              "content": "Analyseer de volgende vraag van gebruiker {{$json[\"contactName\"]}} (ID: {{$json[\"userId\"]}}):\n\n\"{{$json[\"query\"]}}\""
+            }
+          ]
+        },
+        "temperature": 0.3,
+        "maxTokens": 500
+      },
+      "id": "detect-intent",
+      "name": "Detect Intent",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [2200, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse AI response and prepare for routing\nconst aiResponse = $json.text || $json.response;\nlet parsedResponse;\n\ntry {\n  parsedResponse = JSON.parse(aiResponse);\n} catch (error) {\n  // Fallback if JSON parsing fails\n  parsedResponse = {\n    intent: 'agent',\n    provider: 'none',\n    timeRange: null,\n    entities: {},\n    complexity: 'simple'\n  };\n}\n\nreturn [{\n  json: {\n    ...parsedResponse,\n    originalQuery: $('prepare-query').item.json.query,\n    userId: $('prepare-query').item.json.userId,\n    phone: $('prepare-query').item.json.phone,\n    contactName: $('prepare-query').item.json.contactName\n  }\n}];"
+      },
+      "id": "parse-intent-response",
+      "name": "Parse Intent Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2400, 300]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.complexity }}",
+        "rules": [
+          { "value": "simple" },
+          { "value": "complex" }
+        ]
+      },
+      "id": "switch-complexity",
+      "name": "Switch by Complexity",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [2600, 300]
+    },
+    {
+      "parameters": {
+        "operation": "chat",
+        "model": "gpt-4",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Je bent de persoonlijke AI-assistent van {{$json[\"contactName\"]}} (UserID: {{$json[\"userId\"]}}).\n\nDeze taak is 'simple' en vereist directe actie.\n\nRegels:\n1. Maak ALTIJD een draft of template (niet direct versturen)\n2. Voor e-mails: maak een Gmail draft\n3. Voor facturen/offertes: maak een draft in ZzpChat\n4. Voor kalender: maak een tentative event\n5. Geef een duidelijke preview van wat je gaat doen\n\nOutput format:\n{\n  \"action\": \"email|calendar|invoice|quote|contact|time\",\n  \"draftType\": \"gmail_draft|calendar_event|invoice_draft|quote_draft|contact_draft|time_entry\",\n  \"preview\": \"Duidelijke preview van de actie\",\n  \"draftData\": {\n    \"subject\": \"Onderwerp\",\n    \"content\": \"Inhoud\",\n    \"recipient\": \"Ontvanger\",\n    \"amount\": \"Bedrag\",\n    \"date\": \"Datum\"\n  },\n  \"nextStep\": \"Volgende stap voor de gebruiker\",\n  \"draftId\": \"temp_draft_123\"\n}"
+            },
+            {
+              "role": "user",
+              "content": "Gebruiker vraagt: \"{{$json[\"originalQuery\"]}}\""
+            }
+          ]
+        },
+        "temperature": 0.3,
+        "maxTokens": 800
+      },
+      "id": "direct-agent",
+      "name": "Direct AI Agent",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [2800, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.ZZPCHAT_API_URL}}/api/context/search",
+        "method": "POST",
+        "jsonParameters": true,
+        "body": {
+          "userId": "={{$json[\"userId\"]}}",
+          "query": "={{$json[\"originalQuery\"]}}",
+          "topK": 5
+        }
+      },
+      "id": "vector-search",
+      "name": "Vector DB Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2800, 400]
+    },
+    {
+      "parameters": {
+        "operation": "chat",
+        "model": "gpt-4",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Je bent de persoonlijke AI-assistent van {{$json[\"contactName\"]}} (UserID: {{$json[\"userId\"]}}).\n\nDeze taak is 'complex' en vereist context uit de persoonlijke database.\n\nRegels:\n1. Maak ALTIJD een draft of template (niet direct versturen)\n2. Gebruik de context om een gepersonaliseerde response te maken\n3. Voor e-mails: maak een Gmail draft met relevante informatie\n4. Voor facturen/offertes: gebruik bestaande templates en klantgegevens\n5. Voor kalender: gebruik bestaande afspraken en voorkeuren\n6. Geef een duidelijke preview van wat je gaat doen\n\nOutput format:\n{\n  \"action\": \"email|calendar|invoice|quote|contact|time\",\n  \"draftType\": \"gmail_draft|calendar_event|invoice_draft|quote_draft|contact_draft|time_entry\",\n  \"preview\": \"Duidelijke preview van de actie met context\",\n  \"draftData\": {\n    \"subject\": \"Onderwerp\",\n    \"content\": \"Inhoud met persoonlijke details\",\n    \"recipient\": \"Ontvanger\",\n    \"amount\": \"Bedrag\",\n    \"date\": \"Datum\",\n    \"context\": \"Gebruikte context uit database\"\n  },\n  \"nextStep\": \"Volgende stap voor de gebruiker\",\n  \"draftId\": \"temp_draft_456\"\n}"
+            },
+            {
+              "role": "user",
+              "content": "Gebruiker vraagt: \"{{$json[\"originalQuery\"]}}\"\n\nRelevante context uit database:\n{{$json[\"results\"] || 'Geen context beschikbaar'}}"
+            }
+          ]
+        },
+        "temperature": 0.3,
+        "maxTokens": 1000
+      },
+      "id": "rag-agent",
+      "name": "AI RAG Agent",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [3000, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json[\"responseType\"]}}",
+              "value2": "answer"
+            }
+          ]
+        }
+      },
+      "id": "CheckResponseType",
+      "name": "Check Response Type",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [2850, 500]
+    },
+    {
+      "parameters": {
+        "url": "https://api.whatsapp-business.com/v1/messages",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "{ \"to\": \"={{$json[\"from\"]}}\", \"type\": \"text\", \"text\": { \"body\": \"={{$json[\"response\"]}}\" } }"
+      },
+      "id": "SendDirectAnswer",
+      "name": "Send Direct Answer to WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [3100, 500]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse AI response and prepare feedback message\nconst aiResponse = $json.text || $json.response;\nlet parsedResponse;\n\ntry {\n  parsedResponse = JSON.parse(aiResponse);\n} catch (error) {\n  // Fallback if JSON parsing fails\n  parsedResponse = {\n    action: 'unknown',\n    draftType: 'unknown',\n    preview: 'Ik begrijp je vraag niet helemaal. Kun je het anders formuleren?',\n    draftData: {},\n    nextStep: 'Probeer je vraag anders te stellen',\n    draftId: 'temp_draft_fallback'\n  };\n}\n\n// Create WhatsApp message\nconst message = `🤖 *ZzpChat AI Agent*\n\n*Actie:* ${parsedResponse.action}\n*Type:* ${parsedResponse.draftType}\n\n*Preview:*\n${parsedResponse.preview}\n\n*Details:*\n${JSON.stringify(parsedResponse.draftData, null, 2)}\n\n*Volgende stap:* ${parsedResponse.nextStep}\n\n*Bevestig met \"ja\" of stuur wijzigingen door.*`;\n\nreturn [{\n  json: {\n    ...parsedResponse,\n    whatsappMessage: message,\n    userId: $('parse-intent-response').item.json.userId,\n    phone: $('parse-intent-response').item.json.phone,\n    contactName: $('parse-intent-response').item.json.contactName\n  }\n}];"
+      },
+      "id": "prepare-feedback",
+      "name": "Prepare Feedback Message",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [3200, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_NUMBER_ID}}/messages",
+        "method": "POST",
+        "jsonParameters": true,
+        "body": {
+          "to": "={{$json[\"phone\"]}}",
+          "type": "text",
+          "text": {
+            "body": "={{$json[\"whatsappMessage\"]}}"
+          }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "httpHeaderAuth": {
+          "name": "Authorization",
+          "value": "Bearer {{ $credentials.whatsappToken }}"
+        }
+      },
+      "id": "send-feedback",
+      "name": "Send Feedback to WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [3400, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.ZZPCHAT_API_URL}}/api/drafts/store",
+        "method": "POST",
+        "jsonParameters": true,
+        "body": {
+          "draftId": "={{$json[\"draftId\"]}}",
+          "userId": "={{$json[\"userId\"]}}",
+          "status": "pending",
+          "draftData": "={{$json[\"draftData\"]}}"
+        }
+      },
+      "id": "store-draft",
+      "name": "Store Draft in Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [3600, 300]
+    }
+  ],
+  "connections": {
+    "WhatsApp Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse WhatsApp Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse WhatsApp Data": {
+      "main": [
+        [
+          {
+            "node": "Resolve UserID by Phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve UserID by Phone": {
+      "main": [
+        [
+          {
+            "node": "If User Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If User Not Found": {
+      "main": [
+        [
+          {
+            "node": "Send Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Pending Drafts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Pending Drafts": {
+      "main": [
+        [
+          {
+            "node": "If Pending Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Pending Draft": {
+      "main": [
+        [
+          {
+            "node": "Handle Draft Feedback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Message Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Draft Feedback": {
+      "main": [
+        [
+          {
+            "node": "Update Draft in Backend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Message Type": {
+      "main": [
+        [
+          {
+            "node": "Get Audio Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Audio Metadata": {
+      "main": [
+        [
+          {
+            "node": "Download Audio Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Audio Binary": {
+      "main": [
+        [
+          {
+            "node": "Transcribe Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe Audio": {
+      "main": [
+        [
+          {
+            "node": "Prepare Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Query": {
+      "main": [
+        [
+          {
+            "node": "Detect Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect Intent": {
+      "main": [
+        [
+          {
+            "node": "Parse Intent Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Intent Response": {
+      "main": [
+        [
+          {
+            "node": "Switch by Complexity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch by Complexity": {
+      "main": [
+        [
+          {
+            "node": "Direct AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Vector DB Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Direct AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Check Response Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector DB Search": {
+      "main": [
+        [
+          {
+            "node": "AI RAG Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI RAG Agent": {
+      "main": [
+        [
+          {
+            "node": "Check Response Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Response Type": {
+      "main": [
+        [
+          {
+            "node": "Send Direct Answer to WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Feedback Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Direct Answer to WhatsApp": {
+      "main": []
+    },
+    "Prepare Feedback Message": {
+      "main": [
+        [
+          {
+            "node": "Send Feedback to WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Feedback to WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Store Draft in Backend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-02T12:00:00.000Z",
+  "versionId": "2"
+}

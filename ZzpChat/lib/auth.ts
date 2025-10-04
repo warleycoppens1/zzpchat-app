@@ -8,10 +8,10 @@ import bcrypt from 'bcryptjs'
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
-    // GoogleProvider({
-    //   clientId: process.env.GOOGLE_CLIENT_ID!,
-    //   clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    // }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -19,7 +19,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
-        if (!credentials?.email) {
+        if (!credentials?.email || !credentials?.password) {
           return null
         }
 
@@ -29,17 +29,21 @@ export const authOptions: NextAuthOptions = {
           }
         })
 
-        if (!user) {
+        if (!user || !user.password) {
           return null
         }
 
-        // For now, we'll skip password verification since we don't have password field in schema yet
-        // This will be implemented when we add password field to User model
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
+        
+        if (!isPasswordValid) {
+          return null
+        }
         
         return {
           id: user.id,
           email: user.email,
           name: user.name,
+          image: user.image,
         }
       }
     })
