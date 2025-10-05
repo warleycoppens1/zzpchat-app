@@ -3,7 +3,7 @@
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { DarkModeToggle } from '@/components/dark-mode-toggle'
+import { DarkModeToggle } from 'components/dark-mode-toggle'
 
 export default function DashboardLayout({
   children,
