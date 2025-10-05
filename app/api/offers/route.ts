@@ -77,10 +77,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const { client: clientId, ...restData } = validatedData
     const offer = await prisma.quote.create({
       data: {
-        ...validatedData,
-        clientId: validatedData.client,
+        ...restData,
+        number: `Q-${Date.now()}`,
+        clientId: clientId,
         validUntil: validatedData.validUntil ? new Date(validatedData.validUntil) : null,
         userId,
       },

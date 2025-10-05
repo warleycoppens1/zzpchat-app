@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAuth } from '@/lib/auth-middleware'
 import { handleApiError, NotFoundError } from '@/lib/errors'
 import { z } from 'zod'
+import { Decimal } from '@prisma/client/runtime/library'
 
 const lineItemSchema = z.object({
   description: z.string().min(1, 'Description is required'),
@@ -73,7 +74,7 @@ export async function PUT(
     // Calculate new amount if line items are updated
     let amount = existingInvoice.amount
     if (validatedData.lineItems) {
-      amount = validatedData.lineItems.reduce((sum, item) => sum + item.amount, 0)
+      amount = new Decimal(validatedData.lineItems.reduce((sum, item) => sum + item.amount, 0))
     }
 
     const updateData: any = {

@@ -124,9 +124,11 @@ export async function GET(request: NextRequest) {
       ? ((currentMonthInvoices - previousMonthInvoices) / previousMonthInvoices) * 100
       : currentMonthInvoices > 0 ? 100 : 0
 
-    const revenueGrowth = (previousMonthRevenue._sum.amount || 0) > 0
-      ? (((currentMonthRevenue._sum.amount || 0) - (previousMonthRevenue._sum.amount || 0)) / (previousMonthRevenue._sum.amount || 0)) * 100
-      : (currentMonthRevenue._sum.amount || 0) > 0 ? 100 : 0
+    const prevRevenue = Number(previousMonthRevenue._sum.amount || 0)
+    const currentRevenue = Number(currentMonthRevenue._sum.amount || 0)
+    const revenueGrowth = prevRevenue > 0
+      ? ((currentRevenue - prevRevenue) / prevRevenue) * 100
+      : currentRevenue > 0 ? 100 : 0
 
     // Format status breakdowns
     const invoiceStatusMap = invoicesByStatus.reduce((acc, item) => {
