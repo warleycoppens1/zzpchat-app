@@ -324,3 +324,4 @@ Please file feedback and issues over on the [Supabase GitHub org](https://github
 >>>>>>> b63cdcc67c1a46bf1c0f9df1030e2ca004e3c5ff
 # Deployment trigger
 # Deployment fix - Sun Oct  5 12:54:56 CEST 2025
+# Force new deployment - Sun Oct  5 13:18:24 CEST 2025
