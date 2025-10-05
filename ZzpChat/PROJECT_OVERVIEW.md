@@ -395,4 +395,5 @@ npm run test:e2e     # Playwright E2E tests
 
 **Laatste Update**: 2 januari 2025  
 **Versie**: 2.0.0  
-**Status**: Epic 1 - Active Development
+**Status**: Epic 1 - Active Development  
+**Deployment**: Live op Vercel

@@ -110,10 +110,10 @@ export default function DashboardPage() {
               <p className="text-3xl font-bold">€{stats?.revenue.currentMonth.toLocaleString('nl-NL') || '0'}</p>
               <p className="text-indigo-100 text-sm mt-1">
                 <span className="inline-flex items-center">
-                  <svg className={`w-4 h-4 mr-1 ${stats?.revenue.growth >= 0 ? '' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className={`w-4 h-4 mr-1 ${(stats?.revenue.growth ?? 0) >= 0 ? '' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
                   </svg>
-                  {stats?.revenue.growth >= 0 ? '+' : ''}{stats?.revenue.growth.toFixed(1)}% vs vorige maand
+                  {(stats?.revenue.growth ?? 0) >= 0 ? '+' : ''}{(stats?.revenue.growth ?? 0).toFixed(1)}% vs vorige maand
                 </span>
               </p>
             </div>
@@ -151,10 +151,10 @@ export default function DashboardPage() {
               <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats?.overview.totalInvoices || 0}</p>
               <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
                 <span className="inline-flex items-center">
-                  <svg className={`w-4 h-4 mr-1 ${stats?.invoices.growth >= 0 ? 'text-green-500' : 'text-red-500 rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className={`w-4 h-4 mr-1 ${(stats?.invoices.growth ?? 0) >= 0 ? 'text-green-500' : 'text-red-500 rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
                   </svg>
-                  {stats?.invoices.growth >= 0 ? '+' : ''}{stats?.invoices.growth.toFixed(1)}% deze maand
+                  {(stats?.invoices.growth ?? 0) >= 0 ? '+' : ''}{(stats?.invoices.growth ?? 0).toFixed(1)}% deze maand
                 </span>
               </p>
             </div>

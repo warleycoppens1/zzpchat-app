@@ -18,6 +18,7 @@ interface FormErrors {
   email?: string
   password?: string
   confirmPassword?: string
+  companyName?: string
   general?: string
 }
 

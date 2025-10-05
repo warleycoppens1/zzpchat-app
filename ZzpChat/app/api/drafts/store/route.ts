@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function getActionTypeFromDraftData(draftData: any): string {
+function getActionTypeFromDraftData(draftData: any): 'CREATE_INVOICE' | 'CREATE_QUOTE' | 'ADD_TIME' | 'SUMMARIZE_EMAILS' | 'MANAGE_CALENDAR' | 'UNKNOWN' {
   if (!draftData || typeof draftData !== 'object') {
     return 'UNKNOWN';
   }

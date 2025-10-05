@@ -38,7 +38,7 @@ export class MollieService {
         redirectUrl: data.redirectUrl,
         webhookUrl: data.webhookUrl,
         metadata: data.metadata,
-        method: data.method,
+        method: data.method as any,
       })
 
       return payment
