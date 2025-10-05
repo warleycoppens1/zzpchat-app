@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { MollieService } from '../../lib/mollie'
-import { prisma } from '../../lib/prisma'
-import { handleApiError } from '../../lib/errors'
+import { MollieService } from '../../../lib/mollie'
+import { prisma } from '../../../lib/prisma'
+import { handleApiError } from '../../../lib/errors'
 
 // POST /api/webhooks/mollie - Handle Mollie webhook events
 export async function POST(request: NextRequest) {
