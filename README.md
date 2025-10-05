@@ -325,3 +325,4 @@ Please file feedback and issues over on the [Supabase GitHub org](https://github
 # Deployment trigger
 # Deployment fix - Sun Oct  5 12:54:56 CEST 2025
 # Force new deployment - Sun Oct  5 13:18:24 CEST 2025
+# Force cache clear - Sun Oct  5 14:43:25 CEST 2025
