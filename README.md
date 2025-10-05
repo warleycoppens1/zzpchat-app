@@ -327,3 +327,4 @@ Please file feedback and issues over on the [Supabase GitHub org](https://github
 # Force new deployment - Sun Oct  5 13:18:24 CEST 2025
 # Force cache clear - Sun Oct  5 14:43:25 CEST 2025
 # Force Vercel cache clear - Sun Oct  5 14:55:52 CEST 2025
+# Final deployment fix - Sun Oct  5 15:07:13 CEST 2025
