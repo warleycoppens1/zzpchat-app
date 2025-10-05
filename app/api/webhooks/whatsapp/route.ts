@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { handleApiError } from '@/lib/errors'
+import { handleApiError } from '../../../lib/errors'
 
 // GET /api/webhooks/whatsapp - WhatsApp webhook verification
 export async function GET(request: NextRequest) {
