@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '../../../lib/prisma'
-import { handleApiError, UnauthorizedError } from '../../../lib/errors'
+import { prisma } from '../../lib/prisma'
+import { handleApiError, UnauthorizedError } from '../../lib/errors'
 import { z } from 'zod'
 
 // Webhook payload schema for n8n
