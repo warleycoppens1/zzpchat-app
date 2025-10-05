@@ -1,9 +1,16 @@
 import { createMollieClient } from '@mollie/api-client'
 
-// Initialize Mollie client
-export const mollieClient = createMollieClient({
-  apiKey: process.env.MOLLIE_API_KEY!,
-})
+// Initialize Mollie client only when API key is available
+let mollieClient: any = null
+
+function getMollieClient() {
+  if (!mollieClient && process.env.MOLLIE_API_KEY) {
+    mollieClient = createMollieClient({
+      apiKey: process.env.MOLLIE_API_KEY,
+    })
+  }
+  return mollieClient
+}
 
 export interface CreatePaymentData {
   amount: {
@@ -32,7 +39,10 @@ export class MollieService {
   // Create a one-time payment
   static async createPayment(data: CreatePaymentData) {
     try {
-      const payment = await mollieClient.payments.create({
+      const client = getMollieClient()
+      if (!client) throw new Error('Mollie API key not configured')
+      
+      const payment = await client.payments.create({
         amount: data.amount,
         description: data.description,
         redirectUrl: data.redirectUrl,
@@ -51,7 +61,10 @@ export class MollieService {
   // Get payment status
   static async getPayment(paymentId: string) {
     try {
-      const payment = await mollieClient.payments.get(paymentId)
+      const client = getMollieClient()
+      if (!client) throw new Error('Mollie API key not configured')
+      
+      const payment = await client.payments.get(paymentId)
       return payment
     } catch (error) {
       console.error('Mollie get payment error:', error)
@@ -62,7 +75,10 @@ export class MollieService {
   // Create a customer for subscriptions
   static async createCustomer(email: string, name: string, metadata?: Record<string, any>) {
     try {
-      const customer = await mollieClient.customers.create({
+      const client = getMollieClient()
+      if (!client) throw new Error('Mollie API key not configured')
+      
+      const customer = await client.customers.create({
         email,
         name,
         metadata,
@@ -78,7 +94,10 @@ export class MollieService {
   // Create a subscription
   static async createSubscription(customerId: string, data: CreateSubscriptionData) {
     try {
-      const subscription = await mollieClient.customerSubscriptions.create({
+      const client = getMollieClient()
+      if (!client) throw new Error('Mollie API key not configured')
+      
+      const subscription = await client.customerSubscriptions.create({
         customerId,
         amount: data.amount,
         interval: data.interval,
@@ -97,7 +116,10 @@ export class MollieService {
   // Cancel a subscription
   static async cancelSubscription(customerId: string, subscriptionId: string) {
     try {
-      const subscription = await mollieClient.customerSubscriptions.cancel(subscriptionId, {
+      const client = getMollieClient()
+      if (!client) throw new Error('Mollie API key not configured')
+      
+      const subscription = await client.customerSubscriptions.cancel(subscriptionId, {
         customerId,
       })
 
@@ -111,7 +133,10 @@ export class MollieService {
   // Get subscription status
   static async getSubscription(customerId: string, subscriptionId: string) {
     try {
-      const subscription = await mollieClient.customerSubscriptions.get(subscriptionId, {
+      const client = getMollieClient()
+      if (!client) throw new Error('Mollie API key not configured')
+      
+      const subscription = await client.customerSubscriptions.get(subscriptionId, {
         customerId,
       })
 
@@ -125,7 +150,10 @@ export class MollieService {
   // List all payments for a customer
   static async getCustomerPayments(customerId: string) {
     try {
-      const payments = await mollieClient.customerPayments.page({
+      const client = getMollieClient()
+      if (!client) throw new Error('Mollie API key not configured')
+      
+      const payments = await client.customerPayments.page({
         customerId,
       })
 
