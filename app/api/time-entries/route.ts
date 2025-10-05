@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from 'lib/prisma'
-import { requireAuth } from 'lib/auth-middleware'
-import { handleApiError } from 'lib/errors'
+import { prisma } from '../../lib/prisma'
+import { requireAuth } from '../../lib/auth-middleware'
+import { handleApiError } from '../../lib/errors'
 import { z } from 'zod'
 
 const createTimeEntrySchema = z.object({
