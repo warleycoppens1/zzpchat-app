@@ -1,10 +1,10 @@
 {
-  "buildCommand": "cd ZzpChat && npx prisma generate && npm run build",
-  "outputDirectory": "ZzpChat/.next",
-  "installCommand": "cd ZzpChat && npm install && npx prisma generate",
+  "buildCommand": "npx prisma generate && npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install && npx prisma generate",
   "framework": "nextjs",
   "functions": {
-    "ZzpChat/app/api/**/*.ts": {
+    "app/api/**/*.ts": {
       "maxDuration": 30
     }
   },
