@@ -1,40 +1,25 @@
 {
   "compilerOptions": {
-<<<<<<< HEAD
     "target": "es5",
     "lib": ["dom", "dom.iterable", "es6"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
-=======
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
     "forceConsistentCasingInFileNames": true,
->>>>>>> b63cdcc67c1a46bf1c0f9df1030e2ca004e3c5ff
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-<<<<<<< HEAD
     "jsx": "preserve",
-=======
-    "jsx": "react-jsx",
->>>>>>> b63cdcc67c1a46bf1c0f9df1030e2ca004e3c5ff
     "incremental": true,
     "plugins": [
       {
         "name": "next"
       }
     ],
-<<<<<<< HEAD
     "baseUrl": ".",
-=======
->>>>>>> b63cdcc67c1a46bf1c0f9df1030e2ca004e3c5ff
     "paths": {
       "@/*": ["./*"]
     }
