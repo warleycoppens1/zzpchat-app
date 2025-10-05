@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { DarkModeToggle } from '../components/dark-mode-toggle'
-import { QRCode } from '../components/qr-code'
-import { InteractiveGridPattern } from '../components/ui/interactive-grid-pattern'
-import { cn } from '../lib/utils'
+import { DarkModeToggle } from '@/components/dark-mode-toggle'
+import { QRCode } from '@/components/qr-code'
+import { InteractiveGridPattern } from '@/components/ui/interactive-grid-pattern'
+import { cn } from '@/lib/utils'
 
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false)

@@ -1,6 +1,6 @@
 'use client'
 
-import { DarkModeToggle } from '../../components/dark-mode-toggle'
+import { DarkModeToggle } from '@/components/dark-mode-toggle'
 
 export default function PricingPage() {
   return (
