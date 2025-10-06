@@ -18,8 +18,10 @@ export class AIAgentService {
   private openaiApiKey: string
 
   constructor() {
-    this.openaiApiKey = process.env.OPENAI_API_KEY!
-    
+    this.openaiApiKey = process.env.OPENAI_API_KEY || ''
+  }
+
+  private ensureApiKey() {
     if (!this.openaiApiKey) {
       throw new Error('OpenAI API key not configured')
     }
@@ -29,6 +31,7 @@ export class AIAgentService {
    * Analyze user feedback on a draft (Block 8 from SimAI workflow)
    */
   async analyzeFeedback(userMessage: string, draftContent: string): Promise<FeedbackAnalysis> {
+    this.ensureApiKey()
     const systemPrompt = `Je bent een AI assistent die feedback analyseert op drafts voor facturen, offertes en emails.
 
 Analyseer de gebruiker feedback en bepaal de actie:
@@ -93,6 +96,7 @@ Antwoord in JSON format: {"action": "CONFIRM|CANCEL|MODIFY", "modifications": ".
    * Analyze user intent from message (for new messages)
    */
   async analyzeIntent(userMessage: string, context?: string): Promise<IntentAnalysis> {
+    this.ensureApiKey()
     const systemPrompt = `Je bent een AI assistent die de intentie van ZZP'ers analyseert in WhatsApp berichten.
 
 Analyseer het bericht en bepaal:
@@ -157,6 +161,7 @@ Antwoord in JSON format: {"intent": "CREATE_INVOICE", "confidence": 0.95, "entit
    * Generate draft content based on intent and entities
    */
   async generateDraft(intent: string, entities: Record<string, any>, userContext: string): Promise<string> {
+    this.ensureApiKey()
     const systemPrompt = `Je bent een AI assistent die professionele drafts maakt voor ZZP'ers.
 
 Maak een draft voor: ${intent}
@@ -199,6 +204,7 @@ Genereer een professionele, complete draft die klaar is voor gebruik.`
    * Transcribe audio using OpenAI Whisper
    */
   async transcribeAudio(audioBuffer: ArrayBuffer): Promise<string> {
+    this.ensureApiKey()
     try {
       // Convert ArrayBuffer to File-like object
       const formData = new FormData()

@@ -5,9 +5,11 @@ export class WhatsAppService {
   private phoneNumberId: string
 
   constructor() {
-    this.accessToken = process.env.WHATSAPP_ACCESS_TOKEN!
-    this.phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID!
-    
+    this.accessToken = process.env.WHATSAPP_ACCESS_TOKEN || ''
+    this.phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID || ''
+  }
+
+  private ensureCredentials() {
     if (!this.accessToken || !this.phoneNumberId) {
       throw new Error('WhatsApp credentials not configured')
     }
@@ -17,6 +19,7 @@ export class WhatsAppService {
    * Send a text message via WhatsApp Business API
    */
   async sendMessage(to: string, message: string, type: 'text' | 'template' = 'text') {
+    this.ensureCredentials()
     const url = `https://graph.facebook.com/v18.0/${this.phoneNumberId}/messages`
     
     const payload = {
@@ -100,6 +103,7 @@ export class WhatsAppService {
    * Download media file from WhatsApp
    */
   async downloadMedia(mediaId: string) {
+    this.ensureCredentials()
     const url = `https://graph.facebook.com/v18.0/${mediaId}`
     
     try {
