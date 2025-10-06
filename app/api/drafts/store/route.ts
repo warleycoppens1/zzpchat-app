@@ -3,16 +3,22 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
 const storeDraftSchema = z.object({
-  draftId: z.string().min(1, 'Draft ID is required'),
   userId: z.string().min(1, 'User ID is required'),
+  type: z.string().min(1, 'Type is required'),
+  content: z.string().min(1, 'Content is required'),
   status: z.enum(['pending', 'confirmed', 'sent', 'cancelled']).default('pending'),
-  draftData: z.any(),
+  metadata: z.object({
+    intent: z.string(),
+    complexity: z.string().optional(),
+    entities: z.record(z.any()).optional(),
+    originalMessage: z.string().optional(),
+  }),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { draftId, userId, status, draftData } = storeDraftSchema.parse(body);
+    const { userId, type, content, status, metadata } = storeDraftSchema.parse(body);
 
     // Verify user exists
     const user = await prisma.user.findUnique({
@@ -27,14 +33,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Generate unique draft ID
+    const draftId = `draft-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
     // Store draft in conversation history
     const conversation = await prisma.aI_Conversation.create({
       data: {
         userId: userId,
-        userMessage: `Draft created: ${draftId}`,
-        aiResponse: `Draft stored with status: ${status}`,
-        actionType: getActionTypeFromDraftData(draftData),
-        actionData: draftData,
+        userMessage: metadata.originalMessage || `Draft created: ${type}`,
+        aiResponse: content,
+        actionType: mapDraftTypeToActionType(type),
+        actionData: metadata,
         status: 'PROCESSING',
       },
     });
@@ -42,9 +51,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       draftId: draftId,
-      conversationId: conversation.id,
-      status: status,
-      message: 'Draft stored successfully',
+      message: 'Draft succesvol opgeslagen'
     });
   } catch (error) {
     console.error('Error storing draft:', error);
@@ -55,23 +62,18 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function getActionTypeFromDraftData(draftData: any): 'CREATE_INVOICE' | 'CREATE_QUOTE' | 'ADD_TIME' | 'SUMMARIZE_EMAILS' | 'MANAGE_CALENDAR' | 'UNKNOWN' {
-  if (!draftData || typeof draftData !== 'object') {
-    return 'UNKNOWN';
-  }
-
-  const draftType = draftData.draftType || '';
-  
+function mapDraftTypeToActionType(draftType: string): 'CREATE_INVOICE' | 'CREATE_QUOTE' | 'ADD_TIME' | 'SUMMARIZE_EMAILS' | 'MANAGE_CALENDAR' | 'UNKNOWN' {
   switch (draftType) {
-    case 'invoice_draft':
+    case 'invoice':
       return 'CREATE_INVOICE';
-    case 'quote_draft':
+    case 'quote':
       return 'CREATE_QUOTE';
     case 'time_entry':
       return 'ADD_TIME';
-    case 'gmail_draft':
-    case 'calendar_event':
+    case 'email_summary':
       return 'SUMMARIZE_EMAILS';
+    case 'calendar_event':
+      return 'MANAGE_CALENDAR';
     default:
       return 'UNKNOWN';
   }

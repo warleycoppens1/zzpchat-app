@@ -8,128 +8,354 @@ datasource db {
 }
 
 model User {
-  id                  String            @id @default(uuid())
-  email               String            @unique
-  name                String
-  password            String?           // For credentials login
-  emailVerified       DateTime?         // For NextAuth
-  image               String?           // For OAuth providers
-  companyName         String?
-  subscriptionTier    SubscriptionTier  @default(STARTER)
-  phone               String?           // General phone number
-  whatsappPhoneNumber String?
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  conversations       AI_Conversation[]
-  clients             Client[]
-  integrations        Integration[]
-  invoices            Invoice[]
-  quotes              Quote[]
-  timeEntries         TimeEntry[]
-  accounts            Account[]         // For NextAuth
-  sessions            Session[]         // For NextAuth
+  id                    String            @id @default(uuid())
+  email                 String            @unique
+  name                  String
+  password              String?
+  emailVerified         DateTime?
+  image                 String?
+  companyName           String?
+  subscriptionTier      SubscriptionTier  @default(STARTER)
+  phone                 String?
+  whatsappPhoneNumber   String?
+  language              String?           @default("nl")
+  timezone              String?           @default("Europe/Amsterdam")
+  emailNotifications    Boolean?          @default(true)
+  profileImage          String?
+  region                String?
+  assistantName         String?           @default("AI Assistent")
+  toneOfVoice           String?           @default("professioneel")
+  outputPreference      String?           @default("kort")
+  specializations       String[]          @default([])
+  dataRetention         Int?              @default(365)
+  darkMode              Boolean?          @default(false)
+  accentColor           String?           @default("indigo")
+  layout                String?           @default("default")
+  twoFactorEnabled      Boolean?          @default(false)
+  twoFactorMethod       String?
+  subscriptionStatus    String?           @default("active")
+  nextBillingDate       DateTime?
+  paymentMethod         String?
+  billingAddress        Json?
+  whatsappMessagesUsed  Int?              @default(0)
+  whatsappMessagesLimit Int?              @default(50)
+  lastLoginAt           DateTime?
+  loginCount            Int?              @default(0)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  accounts              Account[]
+  conversations         AI_Conversation[]
+  analytics             Analytics[]
+  clients               Client[]
+  integrations          Integration[]
+  invoices              Invoice[]
+  notifications         Notification[]
+  projects              Project[]
+  quotes                Quote[]
+  reminders             Reminder[]
+  reports               Report[]
+  sessions              Session[]
+  tasks                 Task[]
+  timeEntries           TimeEntry[]
 
   @@map("users")
 }
 
 model Client {
-  id          String      @id @default(uuid())
-  name        String
-  email       String?
-  company     String?
-  phone       String?
-  address     String?
-  vatNumber   String?
-  position    String?
-  notes       String?
-  tags        String[]    @default([])
-  userId      String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  invoices    Invoice[]
-  quotes      Quote[]
-  timeEntries TimeEntry[]
+  id                     String      @id @default(uuid())
+  name                   String
+  email                  String?
+  company                String?
+  phone                  String?
+  address                String?
+  vatNumber              String?
+  position               String?
+  notes                  String?
+  tags                   String[]    @default([])
+  type                   String      @default("client")
+  status                 String      @default("active")
+  website                String?
+  linkedin               String?
+  industry               String?
+  companySize            String?
+  kvkNumber              String?
+  paymentTerms           String?     @default("30")
+  currency               String?     @default("EUR")
+  lastInteraction        DateTime?
+  interactionType        String?
+  interactionCount       Int?        @default(0)
+  totalInvoices          Int?        @default(0)
+  totalRevenue           Decimal?    @default(0)
+  projectsCount          Int?        @default(0)
+  averageProjectValue    Decimal?
+  preferredContactMethod String?
+  communicationLanguage  String?     @default("nl")
+  clientTimezone         String?
+  categories             String[]    @default([])
+  internalNotes          String?
+  history                Json?
+  userId                 String
+  createdAt              DateTime    @default(now())
+  updatedAt              DateTime    @updatedAt
+  user                   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices               Invoice[]
+  projects               Project[]
+  quotes                 Quote[]
+  timeEntries            TimeEntry[]
 
   @@map("clients")
 }
 
 model Invoice {
-  id          String        @id @default(uuid())
-  number      String
-  amount      Decimal
-  status      InvoiceStatus @default(DRAFT)
-  clientId    String
-  userId      String
-  dueDate     DateTime?
-  sentAt      DateTime?
-  paidAt      DateTime?
-  description String?
-  lineItems   Json?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  client      Client        @relation(fields: [clientId], references: [id])
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  timeEntries TimeEntry[]
+  id               String        @id @default(uuid())
+  number           String
+  amount           Decimal
+  status           InvoiceStatus @default(DRAFT)
+  clientId         String
+  userId           String
+  dueDate          DateTime?
+  sentAt           DateTime?
+  paidAt           DateTime?
+  description      String?
+  lineItems        Json?
+  currency         String?       @default("EUR")
+  exchangeRate     Decimal?
+  taxRate          Decimal?      @default(21.0)
+  taxAmount        Decimal?
+  discountRate     Decimal?
+  discountAmount   Decimal?
+  shipping         Decimal?
+  subtotal         Decimal?
+  paymentTerms     String?       @default("30")
+  paymentMethod    String?
+  paymentReference String?
+  reminderSent     Boolean?      @default(false)
+  reminderCount    Int?          @default(0)
+  pdfPath          String?
+  logoPath         String?
+  template         String?       @default("default")
+  billFrom         Json?
+  billTo           Json?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  client           Client        @relation(fields: [clientId], references: [id])
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeEntries      TimeEntry[]
 
   @@unique([number, userId])
   @@map("invoices")
 }
 
 model Quote {
-  id          String      @id @default(uuid())
-  number      String
-  amount      Decimal
-  status      QuoteStatus @default(DRAFT)
-  clientId    String
-  userId      String
-  validUntil  DateTime?
-  sentAt      DateTime?
-  acceptedAt  DateTime?
-  description String?
-  notes       String?
-  lineItems   Json?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  client      Client      @relation(fields: [clientId], references: [id])
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String      @id @default(uuid())
+  number         String
+  amount         Decimal
+  status         QuoteStatus @default(DRAFT)
+  clientId       String
+  userId         String
+  validUntil     DateTime?
+  sentAt         DateTime?
+  acceptedAt     DateTime?
+  description    String?
+  notes          String?
+  lineItems      Json?
+  currency       String?     @default("EUR")
+  exchangeRate   Decimal?
+  taxRate        Decimal?    @default(21.0)
+  taxAmount      Decimal?
+  discountRate   Decimal?
+  discountAmount Decimal?
+  shipping       Decimal?
+  subtotal       Decimal?
+  terms          String?
+  validityPeriod Int?        @default(30)
+  pdfPath        String?
+  logoPath       String?
+  template       String?     @default("default")
+  billFrom       Json?
+  billTo         Json?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  client         Client      @relation(fields: [clientId], references: [id])
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([number, userId])
   @@map("quotes")
 }
 
 model TimeEntry {
-  id        String   @id @default(uuid())
-  project   String
-  hours     Decimal
-  date      DateTime @db.Date
-  notes     String?
-  clientId  String?
-  userId    String
-  invoiceId String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  client    Client?  @relation(fields: [clientId], references: [id])
-  invoice   Invoice? @relation(fields: [invoiceId], references: [id])
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String    @id @default(uuid())
+  project         String
+  hours           Decimal
+  date            DateTime  @db.Date
+  notes           String?
+  clientId        String?
+  userId          String
+  invoiceId       String?
+  startTime       DateTime?
+  endTime         DateTime?
+  breakTime       Decimal?  @default(0)
+  hourlyRate      Decimal?
+  totalAmount     Decimal?
+  status          String    @default("draft")
+  billable        Boolean?  @default(true)
+  taskId          String?
+  projectId       String?
+  location        String?
+  context         String?
+  approvedBy      String?
+  approvedAt      DateTime?
+  approvalNotes   String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  client          Client?   @relation(fields: [clientId], references: [id])
+  invoice         Invoice?  @relation(fields: [invoiceId], references: [id])
+  projectRelation Project?  @relation(fields: [projectId], references: [id])
+  task            Task?     @relation(fields: [taskId], references: [id])
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("time_entries")
 }
 
+model Project {
+  id          String      @id @default(uuid())
+  name        String
+  description String?
+  clientId    String?
+  userId      String
+  status      String      @default("active")
+  hourlyRate  Decimal?
+  budget      Decimal?
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  client      Client?     @relation(fields: [clientId], references: [id])
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  timeEntries TimeEntry[]
+
+  @@map("projects")
+}
+
+model Task {
+  id             String      @id @default(uuid())
+  name           String
+  description    String?
+  projectId      String
+  userId         String
+  status         String      @default("todo")
+  priority       String      @default("medium")
+  estimatedHours Decimal?
+  actualHours    Decimal?
+  dueDate        DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  project        Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeEntries    TimeEntry[]
+
+  @@map("tasks")
+}
+
 model Integration {
-  id           String            @id @default(uuid())
-  type         IntegrationType
-  status       IntegrationStatus @default(CONNECTING)
-  credentials  String
-  userId       String
-  lastSync     DateTime?
-  errorMessage String?
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String            @id @default(uuid())
+  type           IntegrationType
+  status         IntegrationStatus @default(CONNECTING)
+  credentials    String
+  userId         String
+  lastSync       DateTime?
+  errorMessage   String?
+  name           String?
+  description    String?
+  logo           String?
+  category       String?
+  connectedAt    DateTime?
+  expiresAt      DateTime?
+  refreshToken   String?
+  scope          String[]          @default([])
+  settings       Json?
+  webhookUrl     String?
+  webhookSecret  String?
+  usageCount     Int?              @default(0)
+  lastUsedAt     DateTime?
+  rateLimit      Int?
+  rateLimitUsed  Int?              @default(0)
+  rateLimitReset DateTime?
+  lastError      String?
+  lastErrorAt    DateTime?
+  retryCount     Int?              @default(0)
+  maxRetries     Int?              @default(3)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([type, userId])
   @@map("integrations")
+}
+
+model Notification {
+  id           String    @id @default(uuid())
+  userId       String
+  type         String
+  title        String
+  message      String
+  data         Json?
+  read         Boolean   @default(false)
+  priority     String    @default("medium")
+  scheduledFor DateTime?
+  sentAt       DateTime?
+  createdAt    DateTime  @default(now())
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Reminder {
+  id               String    @id @default(uuid())
+  userId           String
+  title            String
+  description      String?
+  type             String
+  dueDate          DateTime
+  completed        Boolean   @default(false)
+  completedAt      DateTime?
+  recurring        Boolean   @default(false)
+  recurringPattern String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("reminders")
+}
+
+model Analytics {
+  id        String   @id @default(uuid())
+  userId    String
+  metric    String
+  value     Decimal
+  period    String
+  date      DateTime @db.Date
+  metadata  Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, metric, period, date])
+  @@map("analytics")
+}
+
+model Report {
+  id          String    @id @default(uuid())
+  userId      String
+  name        String
+  type        String
+  parameters  Json?
+  data        Json?
+  generatedAt DateTime  @default(now())
+  expiresAt   DateTime?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("reports")
 }
 
 model AI_Conversation {
@@ -147,6 +373,44 @@ model AI_Conversation {
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("ai_conversations")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
 }
 
 enum SubscriptionTier {
@@ -178,6 +442,9 @@ enum IntegrationType {
   GOOGLE_DRIVE
   OUTLOOK_MAIL
   OUTLOOK_CALENDAR
+  EXACT_ONLINE
+  MONEYBIRD
+  SLACK
 }
 
 enum IntegrationStatus {
@@ -200,44 +467,4 @@ enum ConversationStatus {
   PROCESSING
   COMPLETED
   ERROR
-}
-
-// NextAuth.js models
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-  @@map("accounts")
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("sessions")
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-  @@map("verification_tokens")
 }

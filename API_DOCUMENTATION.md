@@ -337,12 +337,14 @@ Alle endpoints gebruiken consistente error handling:
 }
 ```
 
-## n8n Integration
+## SimAI Integration
 
-Deze API endpoints zijn geïntegreerd in de n8n workflow:
+Deze API endpoints zijn geïntegreerd in de SimAI WhatsApp AI Assistant workflow:
 
-- **Offers**: `POST /api/offers` wordt aangeroepen vanuit de "Subflow Offerte" node
-- **Contacts**: `POST /api/contacts` en `GET /api/contacts` worden aangeroepen vanuit de "Subflow Contacten" nodes
+- **User Resolution**: `POST /api/users/resolve-by-phone` - Gebruiker zoeken op telefoonnummer
+- **Draft Management**: `GET /api/drafts/pending`, `POST /api/drafts/store`, `POST /api/drafts/update`
+- **Context Search**: `POST /api/context/search` - Zoeken in klantgegevens voor context
+- **Audio Processing**: `POST /api/whatsapp/audio/transcribe` - Spraak-naar-tekst conversie
 
 De workflow gebruikt de volgende environment variables:
 - `ZZPCHAT_API_URL`: De base URL van je ZzpChat API

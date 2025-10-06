@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { handleApiError } from '@/lib/errors'
+import { whatsappService } from '@/lib/whatsapp'
+import { aiAgentService } from '@/lib/ai-agent'
 
 // GET /api/webhooks/whatsapp - WhatsApp webhook verification
 export async function GET(request: NextRequest) {
@@ -57,28 +59,66 @@ async function processWhatsAppMessage(messageData: any) {
     for (const message of messages) {
       const contact = contacts.find((c: any) => c.wa_id === message.from)
       
-      // Forward to n8n for AI processing
-      if (process.env.N8N_WEBHOOK_URL) {
-        const n8nPayload = {
-          type: 'whatsapp_message',
-          messageId: message.id,
-          from: message.from,
-          contactName: contact?.profile?.name || 'Unknown',
-          messageType: message.type,
-          message: extractMessageText(message),
-          timestamp: new Date().toISOString(),
+      // Process WhatsApp message for SimAI workflow
+      const messageData = {
+        messageId: message.id,
+        from: message.from,
+        contactName: contact?.profile?.name || 'Unknown',
+        messageType: message.type,
+        message: extractMessageText(message),
+        timestamp: new Date().toISOString(),
+      }
+
+      console.log('WhatsApp message received:', messageData)
+      
+      // Send acknowledgment (Block 1 from SimAI workflow)
+      try {
+        await whatsappService.sendAcknowledgment(message.from)
+      } catch (error) {
+        console.error('Failed to send acknowledgment:', error)
+      }
+
+      // Handle audio messages
+      if (message.type === 'audio' && message.audio?.id) {
+        try {
+          // Download and transcribe audio
+          const audioUrl = await whatsappService.getMediaUrl(message.audio.id)
+          const audioResponse = await fetch(audioUrl, {
+            headers: { 'Authorization': `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}` }
+          })
+          const audioBuffer = await audioResponse.arrayBuffer()
+          const transcription = await aiAgentService.transcribeAudio(audioBuffer)
+          
+          // Update message with transcription
+          messageData.message = transcription
+          console.log('Audio transcribed:', transcription)
+        } catch (error) {
+          console.error('Audio transcription failed:', error)
         }
+      }
 
-        await fetch(process.env.N8N_WEBHOOK_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.N8N_API_KEY}`,
-          },
-          body: JSON.stringify(n8nPayload),
-        })
-
-        console.log('Message forwarded to n8n:', n8nPayload)
+      // Forward to SimAI workflow if configured
+      if (process.env.SIMAI_WEBHOOK_URL) {
+        try {
+          await fetch(process.env.SIMAI_WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${process.env.SIMAI_API_KEY}`,
+            },
+            body: JSON.stringify({
+              type: 'whatsapp_message',
+              whatsapptrigger: {
+                from: message.from,
+                body: messageData.message
+              },
+              ...messageData
+            }),
+          })
+          console.log('Message forwarded to SimAI workflow')
+        } catch (error) {
+          console.error('Failed to forward to SimAI:', error)
+        }
       }
     }
   } catch (error) {

@@ -2,14 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
-const checkPendingDraftsSchema = z.object({
-  userId: z.string().min(1, 'User ID is required'),
-});
-
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { userId } = checkPendingDraftsSchema.parse(body);
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'userId query parameter is required' },
+        { status: 400 }
+      );
+    }
 
     // Verify user exists
     const user = await prisma.user.findUnique({
@@ -39,18 +42,37 @@ export async function POST(request: NextRequest) {
         id: true,
         actionType: true,
         actionData: true,
+        userMessage: true,
+        aiResponse: true,
         createdAt: true,
       },
     });
 
     const hasPendingDraft = pendingConversations.length > 0;
-    const pendingDraftId = hasPendingDraft ? pendingConversations[0].id : null;
+    
+    if (hasPendingDraft) {
+      const draft = pendingConversations[0];
+      return NextResponse.json({
+        hasPending: true,
+        draft: {
+          draftId: draft.id,
+          userId: userId,
+          type: mapActionTypeToDraftType(draft.actionType || 'UNKNOWN'),
+          content: draft.aiResponse || draft.userMessage,
+          status: 'pending',
+          createdAt: draft.createdAt.toISOString(),
+          metadata: {
+            intent: draft.actionType,
+            entities: draft.actionData || {},
+            originalMessage: draft.userMessage
+          }
+        }
+      });
+    }
 
     return NextResponse.json({
-      hasPendingDraft,
-      pendingDraftId,
-      userId,
-      draftCount: pendingConversations.length,
+      hasPending: false,
+      draft: null
     });
   } catch (error) {
     console.error('Error checking pending drafts:', error);
@@ -58,5 +80,22 @@ export async function POST(request: NextRequest) {
       { error: 'Failed to check pending drafts' },
       { status: 500 }
     );
+  }
+}
+
+function mapActionTypeToDraftType(actionType: string): string {
+  switch (actionType) {
+    case 'CREATE_INVOICE':
+      return 'invoice';
+    case 'CREATE_QUOTE':
+      return 'quote';
+    case 'ADD_TIME':
+      return 'time_entry';
+    case 'SUMMARIZE_EMAILS':
+      return 'email_summary';
+    case 'MANAGE_CALENDAR':
+      return 'calendar_event';
+    default:
+      return 'unknown';
   }
 }

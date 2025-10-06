@@ -41,7 +41,7 @@ Volgens de cleanup uitgevoerd op 29 september 2025 [[memory:9451978]]:
 - **Authentication**: NextAuth.js (Google OAuth + Credentials)
 - **Payments**: Mollie API (iDEAL, SEPA, Credit Card)
 - **AI**: OpenAI GPT-4, OpenAI Whisper (voice transcription)
-- **Automation**: n8n workflows
+- **Automation**: SimAI workflows
 - **Deployment**: Vercel
 - **UI Components**: Radix UI, Lucide React icons
 
@@ -110,8 +110,7 @@ Utility:
 
 Webhooks:
 ├── /api/webhooks/whatsapp - WhatsApp webhook
-├── /api/webhooks/mollie - Mollie payment webhook
-└── /api/webhooks/n8n - n8n automation webhook
+└── /api/webhooks/mollie - Mollie payment webhook
 ```
 
 ---
@@ -160,10 +159,10 @@ MICROSOFT_CLIENT_SECRET="your-microsoft-client-secret"
 ENCRYPTION_KEY="32-character-encryption-key"
 ```
 
-### Automation (n8n)
+### Automation (SimAI)
 ```env
-N8N_WEBHOOK_URL="https://your-n8n-instance.com/webhook"
-N8N_API_KEY="your-n8n-api-key"
+SIMAI_WEBHOOK_URL="https://your-simai-workflow.com/webhook"
+SIMAI_API_KEY="your-simai-api-key"
 ```
 
 ### Application Settings
@@ -174,10 +173,10 @@ APP_URL="https://your-domain.com"
 
 ---
 
-## 🤖 n8n Workflow Integration
+## 🤖 SimAI Workflow Integration
 
-### Grok Improved Workflow
-**Bestand**: `/n8n-workflows/grok-improved-workflow.json`
+### WhatsApp AI Assistant Workflow
+**Platform**: SimAI Workflow Automation
 
 #### Workflow Flow:
 ```
@@ -377,7 +376,7 @@ npm run test:e2e     # Playwright E2E tests
 - **Email**: support@zzpchat.nl
 - **Repository**: Private (proprietary software)
 - **Documentation**: This file + API_DOCUMENTATION.md
-- **Workflow Docs**: n8n-workflows/GROK_WORKFLOW_DOCUMENTATION.md
+- **Workflow Docs**: SimAI WhatsApp AI Assistant Workflow Documentation
 
 ---
 

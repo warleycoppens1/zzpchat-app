@@ -11,7 +11,7 @@ Een moderne webapplicatie die ZZP'ers helpt met administratie via WhatsApp AI-in
 - ⏰ **Urenregistratie** - Houd bij hoeveel uren je werkt
 - 👥 **Klantenbeheer** - Centraal overzicht van al je klanten
 - 💳 **Mollie Integratie** - Nederlandse betaalmethoden (iDEAL, SEPA)
-- 🔗 **n8n Workflows** - Automatisering van bedrijfsprocessen
+- 🤖 **SimAI Workflows** - Intelligente automatisering van bedrijfsprocessen
 - 📧 **Email Integraties** - Gmail en Outlook synchronisatie
 
 ## Tech Stack
@@ -22,7 +22,7 @@ Een moderne webapplicatie die ZZP'ers helpt met administratie via WhatsApp AI-in
 - **Authentication**: NextAuth.js
 - **Payments**: Mollie API
 - **AI**: OpenAI GPT-4
-- **Automation**: n8n
+- **Automation**: SimAI
 - **Deployment**: Vercel
 
 ## Getting Started
@@ -116,12 +116,11 @@ Een moderne webapplicatie die ZZP'ers helpt met administratie via WhatsApp AI-in
 1. **Configure webhooks**
    - WhatsApp webhook: `https://your-domain.com/api/webhooks/whatsapp`
    - Mollie webhook: `https://your-domain.com/api/webhooks/mollie`
-   - n8n webhook: `https://your-domain.com/api/webhooks/n8n`
 
-2. **Set up n8n workflows**
-   - Deploy n8n instance (self-hosted or n8n Cloud)
-   - Import workflow templates from `/workflows` folder
-   - Configure webhook URLs and API keys
+2. **Set up SimAI workflows**
+   - Configure SimAI workflow automation
+   - Set up webhook URLs and API keys
+   - Import WhatsApp AI Assistant workflow
 
 ## API Endpoints
 
@@ -157,7 +156,6 @@ Een moderne webapplicatie die ZZP'ers helpt met administratie via WhatsApp AI-in
 ### Webhooks
 - `POST /api/webhooks/whatsapp` - WhatsApp webhook
 - `POST /api/webhooks/mollie` - Mollie payment webhook
-- `POST /api/webhooks/n8n` - n8n automation webhook
 
 ## Database Schema
 
@@ -171,13 +169,13 @@ The application uses Prisma with PostgreSQL. Key models:
 - **Integration** - OAuth integrations (Gmail, Outlook)
 - **AI_Conversation** - WhatsApp AI conversation history
 
-## n8n Workflows
+## SimAI Workflows
 
-The application uses n8n for automation:
+The application uses SimAI for intelligent automation:
 
-1. **WhatsApp Message Processing**
+1. **WhatsApp AI Assistant**
    - Receives WhatsApp messages
-   - Processes with OpenAI
+   - Processes with AI agents
    - Creates invoices/quotes automatically
    - Sends responses back to WhatsApp
 

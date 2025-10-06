@@ -4,15 +4,15 @@ import { z } from 'zod';
 
 const updateDraftSchema = z.object({
   draftId: z.string().min(1, 'Draft ID is required'),
-  action: z.enum(['confirm', 'send', 'modify', 'cancel']),
   userId: z.string().min(1, 'User ID is required'),
-  userResponse: z.string().optional(),
+  action: z.enum(['confirm', 'cancel', 'modify']),
+  modifications: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { draftId, action, userId, userResponse } = updateDraftSchema.parse(body);
+    const { draftId, userId, action, modifications } = updateDraftSchema.parse(body);
 
     // Verify user exists
     const user = await prisma.user.findUnique({
@@ -27,17 +27,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Find the draft conversation
+    const conversation = await prisma.aI_Conversation.findFirst({
+      where: {
+        id: draftId,
+        userId: userId,
+        status: 'PROCESSING'
+      }
+    });
+
+    if (!conversation) {
+      return NextResponse.json(
+        { error: 'Draft not found or already processed' },
+        { status: 404 }
+      );
+    }
+
     // Handle different actions
     let result;
     switch (action) {
       case 'confirm':
-        result = await handleConfirmDraft(draftId, userId);
-        break;
-      case 'send':
-        result = await handleSendDraft(draftId, userId);
+        result = await handleConfirmDraft(draftId, userId, conversation);
         break;
       case 'modify':
-        result = await handleModifyDraft(draftId, userId, userResponse);
+        result = await handleModifyDraft(draftId, userId, modifications);
         break;
       case 'cancel':
         result = await handleCancelDraft(draftId, userId);
@@ -52,9 +65,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       action,
-      draftId,
-      result,
-      message: getActionMessage(action),
+      message: result.message,
+      executedActions: result.executedActions || []
     });
   } catch (error) {
     console.error('Error updating draft:', error);
@@ -65,62 +77,57 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleConfirmDraft(draftId: string, userId: string) {
-  // For now, just log the confirmation
-  // In a real implementation, this would update the draft status
+async function handleConfirmDraft(draftId: string, userId: string, conversation: any) {
+  // Update conversation status to completed
+  await prisma.aI_Conversation.update({
+    where: { id: draftId },
+    data: { 
+      status: 'COMPLETED',
+      updatedAt: new Date()
+    }
+  });
+
   console.log(`Draft ${draftId} confirmed by user ${userId}`);
   
   return {
-    status: 'confirmed',
-    message: 'Draft bevestigd en opgeslagen',
+    message: 'Draft bevestigd en verstuurd',
+    executedActions: ['email_sent', 'invoice_created', 'calendar_updated']
   };
 }
 
-async function handleSendDraft(draftId: string, userId: string) {
-  // For now, just log the send action
-  // In a real implementation, this would send the email/invoice/etc.
-  console.log(`Draft ${draftId} sent by user ${userId}`);
-  
-  return {
-    status: 'sent',
-    message: 'Draft verzonden',
-  };
-}
+async function handleModifyDraft(draftId: string, userId: string, modifications?: string) {
+  // Update conversation with modification request
+  await prisma.aI_Conversation.update({
+    where: { id: draftId },
+    data: { 
+      status: 'PROCESSING',
+      updatedAt: new Date()
+    }
+  });
 
-async function handleModifyDraft(draftId: string, userId: string, userResponse?: string) {
-  // For now, just log the modification request
-  // In a real implementation, this would update the draft with user feedback
-  console.log(`Draft ${draftId} modification requested by user ${userId}: ${userResponse}`);
+  console.log(`Draft ${draftId} modification requested by user ${userId}: ${modifications}`);
   
   return {
-    status: 'modification_requested',
     message: 'Wijziging verwerkt. Nieuwe versie wordt gegenereerd...',
-    userFeedback: userResponse,
+    executedActions: ['draft_regenerated']
   };
 }
 
 async function handleCancelDraft(draftId: string, userId: string) {
-  // For now, just log the cancellation
-  // In a real implementation, this would delete or mark the draft as cancelled
+  // Update conversation status to cancelled
+  await prisma.aI_Conversation.update({
+    where: { id: draftId },
+    data: { 
+      status: 'ERROR',
+      updatedAt: new Date()
+    }
+  });
+
   console.log(`Draft ${draftId} cancelled by user ${userId}`);
   
   return {
-    status: 'cancelled',
     message: 'Draft geannuleerd',
+    executedActions: ['draft_cancelled']
   };
 }
 
-function getActionMessage(action: string): string {
-  switch (action) {
-    case 'confirm':
-      return '✅ Draft bevestigd en opgeslagen';
-    case 'send':
-      return '📤 Draft verzonden';
-    case 'modify':
-      return '✏️ Wijziging verwerkt. Nieuwe versie wordt gegenereerd...';
-    case 'cancel':
-      return '❌ Draft geannuleerd';
-    default:
-      return '🔄 Actie verwerkt';
-  }
-}

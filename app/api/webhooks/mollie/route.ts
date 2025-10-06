@@ -61,24 +61,14 @@ async function handlePaidPayment(payment: any) {
     
     console.log(`Invoice ${metadata.invoiceId} marked as paid`)
     
-    // Send confirmation email via n8n
-    if (process.env.N8N_WEBHOOK_URL) {
-      await fetch(process.env.N8N_WEBHOOK_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.N8N_API_KEY}`,
-        },
-        body: JSON.stringify({
-          type: 'invoice_paid',
-          invoiceId: metadata.invoiceId,
-          paymentId: payment.id,
-          amount: payment.amount.value,
-          customerEmail: metadata.customerEmail,
-          timestamp: new Date().toISOString(),
-        }),
-      })
-    }
+    // TODO: Send confirmation email
+    // This can be implemented with a direct email service or SimAI workflow
+    console.log('Invoice payment confirmed - email notification needed', {
+      invoiceId: metadata.invoiceId,
+      paymentId: payment.id,
+      amount: payment.amount.value,
+      customerEmail: metadata.customerEmail,
+    })
   }
   
   if (metadata.subscriptionTier && metadata.userId) {
@@ -101,22 +91,12 @@ async function handleFailedPayment(payment: any) {
     // Could mark invoice as payment failed
     console.log(`Payment failed for invoice ${metadata.invoiceId}`)
     
-    // Send failure notification via n8n
-    if (process.env.N8N_WEBHOOK_URL) {
-      await fetch(process.env.N8N_WEBHOOK_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.N8N_API_KEY}`,
-        },
-        body: JSON.stringify({
-          type: 'payment_failed',
-          invoiceId: metadata.invoiceId,
-          paymentId: payment.id,
-          reason: payment.status,
-          timestamp: new Date().toISOString(),
-        }),
-      })
-    }
+    // TODO: Send failure notification
+    // This can be implemented with a direct email service or SimAI workflow
+    console.log('Payment failed - notification needed', {
+      invoiceId: metadata.invoiceId,
+      paymentId: payment.id,
+      reason: payment.status,
+    })
   }
 }
