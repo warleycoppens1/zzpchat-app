@@ -3,6 +3,7 @@
   "outputDirectory": ".next",
   "installCommand": "npm install && npx prisma generate",
   "framework": "nextjs",
+  "_comment": "Force redeploy: 2025-11-03",
   "functions": {
     "app/api/**/*.ts": {
       "maxDuration": 30
