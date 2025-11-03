@@ -63,3 +63,13 @@ prisma/migrations/
 # Database
 *.db
 *.sqlite
+
+# Uploads
+uploads/
+public/uploads/
+
+# Test files
+*.test.txt
+test.txt
+components/test.txt
+lib/test.txt

@@ -20,6 +20,23 @@ interface TimeEntry {
   updatedAt: Date
 }
 
+interface KilometerEntry {
+  id: string
+  date: string
+  fromLocation: string
+  toLocation: string
+  distanceKm: number
+  purpose: string
+  type: 'zakelijk' | 'privé'
+  notes?: string
+  isBillable: boolean
+  status: 'draft' | 'billable' | 'billed'
+  client?: string
+  project?: string
+  createdAt: Date
+  updatedAt: Date
+}
+
 interface Client {
   id: string
   name: string
@@ -42,7 +59,9 @@ interface Task {
 }
 
 export default function TimeEntriesPage() {
+  const [activeTab, setActiveTab] = useState<'uren' | 'kilometers' | 'overzicht'>('uren')
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([])
+  const [kilometerEntries, setKilometerEntries] = useState<KilometerEntry[]>([])
   const [clients, setClients] = useState<Client[]>([
     { id: '1', name: 'Acme Corp' },
     { id: '2', name: 'StartupXYZ' },
@@ -76,12 +95,24 @@ export default function TimeEntriesPage() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [showTaskModal, setShowTaskModal] = useState(false)
+  const [showAddKilometerModal, setShowAddKilometerModal] = useState(false)
+  const [showEditKilometerModal, setShowEditKilometerModal] = useState(false)
   const [selectedEntries, setSelectedEntries] = useState<string[]>([])
+  const [selectedKilometerEntries, setSelectedKilometerEntries] = useState<string[]>([])
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [filterClient, setFilterClient] = useState<string>('all')
   const [filterDateFrom, setFilterDateFrom] = useState('')
   const [filterDateTo, setFilterDateTo] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
+  
+  // Kilometer filters
+  const [kilometerFilterClient, setKilometerFilterClient] = useState<string>('all')
+  const [kilometerFilterProject, setKilometerFilterProject] = useState<string>('all')
+  const [kilometerFilterDateFrom, setKilometerFilterDateFrom] = useState('')
+  const [kilometerFilterDateTo, setKilometerFilterDateTo] = useState('')
+  const [kilometerFilterType, setKilometerFilterType] = useState<string>('all')
+  const [kilometerFilterBillable, setKilometerFilterBillable] = useState<string>('all')
+  const [kilometerSearchTerm, setKilometerSearchTerm] = useState('')
 
   const [newEntry, setNewEntry] = useState<Partial<TimeEntry>>({
     date: new Date().toISOString().split('T')[0],
@@ -110,6 +141,22 @@ export default function TimeEntriesPage() {
     hourlyRate: 75
   })
 
+  const [newKilometerEntry, setNewKilometerEntry] = useState<Partial<KilometerEntry>>({
+    date: new Date().toISOString().split('T')[0],
+    fromLocation: '',
+    toLocation: '',
+    distanceKm: 0,
+    purpose: '',
+    type: 'zakelijk',
+    notes: '',
+    isBillable: true,
+    status: 'draft',
+    client: '',
+    project: ''
+  })
+
+  const [selectedKilometerEntry, setSelectedKilometerEntry] = useState<KilometerEntry | null>(null)
+
   // Calculate totals
   const totalHoursThisWeek = timeEntries
     .filter(entry => {
@@ -132,6 +179,20 @@ export default function TimeEntriesPage() {
   const billableAmount = timeEntries
     .filter(entry => entry.status === 'billable')
     .reduce((sum, entry) => sum + entry.totalAmount, 0)
+
+  // Kilometer calculations
+  const totalKilometersThisMonth = kilometerEntries
+    .filter(entry => {
+      const entryDate = new Date(entry.date)
+      const monthAgo = new Date()
+      monthAgo.setMonth(monthAgo.getMonth() - 1)
+      return entryDate >= monthAgo
+    })
+    .reduce((sum, entry) => sum + entry.distanceKm, 0)
+
+  const billableKilometers = kilometerEntries
+    .filter(entry => entry.isBillable)
+    .reduce((sum, entry) => sum + entry.distanceKm, 0)
 
   // Get available tasks based on selected project
   const getAvailableTasks = (selectedProject?: string) => {
@@ -174,6 +235,26 @@ export default function TimeEntriesPage() {
       getTaskName(entry.task).toLowerCase().includes(searchTerm.toLowerCase())
 
     return matchesStatus && matchesClient && matchesDateFrom && matchesDateTo && matchesSearch
+  })
+
+  // Filter kilometer entries based on current filters
+  const filteredKilometerEntries = kilometerEntries.filter(entry => {
+    const matchesClient = kilometerFilterClient === 'all' || entry.client === kilometerFilterClient
+    const matchesProject = kilometerFilterProject === 'all' || entry.project === kilometerFilterProject
+    const matchesType = kilometerFilterType === 'all' || entry.type === kilometerFilterType
+    const matchesBillable = kilometerFilterBillable === 'all' || 
+      (kilometerFilterBillable === 'true' && entry.isBillable) ||
+      (kilometerFilterBillable === 'false' && !entry.isBillable)
+    const matchesDateFrom = !kilometerFilterDateFrom || entry.date >= kilometerFilterDateFrom
+    const matchesDateTo = !kilometerFilterDateTo || entry.date <= kilometerFilterDateTo
+    const matchesSearch = !kilometerSearchTerm || 
+      (entry.fromLocation || '').toLowerCase().includes(kilometerSearchTerm.toLowerCase()) ||
+      (entry.toLocation || '').toLowerCase().includes(kilometerSearchTerm.toLowerCase()) ||
+      (entry.purpose || '').toLowerCase().includes(kilometerSearchTerm.toLowerCase()) ||
+      getClientName(entry.client).toLowerCase().includes(kilometerSearchTerm.toLowerCase()) ||
+      getProjectName(entry.project).toLowerCase().includes(kilometerSearchTerm.toLowerCase())
+
+    return matchesClient && matchesProject && matchesType && matchesBillable && matchesDateFrom && matchesDateTo && matchesSearch
   })
 
   // Calculate duration from start and end time
@@ -306,6 +387,52 @@ export default function TimeEntriesPage() {
     setShowEditModal(true)
   }
 
+  const handleAddKilometerEntry = () => {
+    if (newKilometerEntry.date && newKilometerEntry.fromLocation && newKilometerEntry.toLocation && newKilometerEntry.distanceKm && newKilometerEntry.purpose) {
+      const entry: KilometerEntry = {
+        id: Date.now().toString(),
+        date: newKilometerEntry.date,
+        fromLocation: newKilometerEntry.fromLocation,
+        toLocation: newKilometerEntry.toLocation,
+        distanceKm: newKilometerEntry.distanceKm || 0,
+        purpose: newKilometerEntry.purpose || '',
+        type: newKilometerEntry.type || 'zakelijk',
+        notes: newKilometerEntry.notes,
+        isBillable: newKilometerEntry.isBillable || true,
+        status: newKilometerEntry.status || 'draft',
+        client: newKilometerEntry.client,
+        project: newKilometerEntry.project,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+
+      setKilometerEntries(prev => [entry, ...prev])
+      setShowAddKilometerModal(false)
+      setNewKilometerEntry({
+        date: new Date().toISOString().split('T')[0],
+        fromLocation: '',
+        toLocation: '',
+        distanceKm: 0,
+        purpose: '',
+        type: 'zakelijk',
+        notes: '',
+        isBillable: true,
+        status: 'draft',
+        client: '',
+        project: ''
+      })
+    }
+  }
+
+  const handleEditKilometerEntry = (entry: KilometerEntry) => {
+    setSelectedKilometerEntry(entry)
+    setShowEditKilometerModal(true)
+  }
+
+  const handleDeleteKilometerEntry = (id: string) => {
+    setKilometerEntries(prev => prev.filter(entry => entry.id !== id))
+  }
+
   const handleDeleteEntry = (id: string) => {
     setTimeEntries(prev => prev.filter(entry => entry.id !== id))
   }
@@ -323,6 +450,21 @@ export default function TimeEntriesPage() {
       setTimeEntries(prev => prev.filter(entry => !selectedEntries.includes(entry.id)))
     }
     setSelectedEntries([])
+  }
+
+  const handleBulkKilometerAction = (action: string) => {
+    if (action === 'mark-billable') {
+      setKilometerEntries(prev => prev.map(entry => 
+        selectedKilometerEntries.includes(entry.id) ? { ...entry, isBillable: true, type: 'zakelijk' } : entry
+      ))
+    } else if (action === 'mark-private') {
+      setKilometerEntries(prev => prev.map(entry => 
+        selectedKilometerEntries.includes(entry.id) ? { ...entry, isBillable: false, type: 'privé' } : entry
+      ))
+    } else if (action === 'delete') {
+      setKilometerEntries(prev => prev.filter(entry => !selectedKilometerEntries.includes(entry.id)))
+    }
+    setSelectedKilometerEntries([])
   }
 
   const exportToCSV = () => {
@@ -382,158 +524,424 @@ export default function TimeEntriesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Urenregistratie</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Urenregistratie & Kilometers</h1>
           <p className="mt-2 text-gray-600 dark:text-gray-300">
-            Registreer en beheer je gewerkte uren per project en klant
+            Registreer en beheer je gewerkte uren en zakelijke kilometers
           </p>
         </div>
         <div className="flex space-x-3">
-          <button
-            onClick={exportToCSV}
-            className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center"
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Export CSV
-          </button>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="bg-indigo-600 text-white px-6 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center"
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            Nieuwe Registratie
-          </button>
+          {activeTab === 'uren' && (
+            <>
+              <button
+                onClick={exportToCSV}
+                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export CSV
+              </button>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-indigo-600 text-white px-6 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Nieuwe Registratie
+              </button>
+            </>
+          )}
+          {activeTab === 'kilometers' && (
+            <button
+              onClick={() => setShowAddKilometerModal(true)}
+              className="bg-green-600 text-white px-6 py-2 rounded-xl text-sm font-medium hover:bg-green-700 transition-colors flex items-center"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              🚗 Nieuwe Rit
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
+        <div className="border-b border-gray-200 dark:border-gray-700">
+          <nav className="flex space-x-8 px-6">
+            <button
+              onClick={() => setActiveTab('uren')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'uren'
+                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+              }`}
+            >
+              📅 Uren
+            </button>
+            <button
+              onClick={() => setActiveTab('kilometers')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'kilometers'
+                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+              }`}
+            >
+              🚗 Kilometers
+            </button>
+            <button
+              onClick={() => setActiveTab('overzicht')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'overzicht'
+                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+              }`}
+            >
+              📊 Overzicht
+            </button>
+          </nav>
         </div>
       </div>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-indigo-100 text-sm font-medium">Deze Week</p>
-              <p className="text-3xl font-bold">{totalHoursThisWeek.toFixed(1)}u</p>
-              <p className="text-indigo-100 text-sm mt-1">Geregistreerde uren</p>
+        {activeTab === 'uren' ? (
+          <>
+            <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-indigo-100 text-sm font-medium">Deze Week</p>
+                  <p className="text-3xl font-bold">{totalHoursThisWeek.toFixed(1)}u</p>
+                  <p className="text-indigo-100 text-sm mt-1">Geregistreerde uren</p>
+                </div>
+                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
             </div>
-            <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+          </>
+        ) : activeTab === 'kilometers' ? (
+          <>
+            <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-6 text-white shadow-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-100 text-sm font-medium">Deze Maand</p>
+                  <p className="text-3xl font-bold">{totalKilometersThisMonth.toFixed(0)} km</p>
+                  <p className="text-green-100 text-sm mt-1">Geregistreerde kilometers</p>
+                </div>
+                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </>
+        ) : (
+          <>
+            <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-indigo-100 text-sm font-medium">Deze Week</p>
+                  <p className="text-3xl font-bold">{totalHoursThisWeek.toFixed(1)}u</p>
+                  <p className="text-indigo-100 text-sm mt-1">Geregistreerde uren</p>
+                </div>
+                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Deze Maand</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">{totalHoursThisMonth.toFixed(1)}u</p>
-              <p className="text-gray-500 text-sm mt-1">Totaal uren</p>
+        {activeTab === 'uren' ? (
+          <>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Deze Maand</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{totalHoursThisMonth.toFixed(1)}u</p>
+                  <p className="text-gray-500 text-sm mt-1">Totaal uren</p>
+                </div>
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+              </div>
             </div>
-            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Factureerbaar</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">€{billableAmount.toFixed(2)}</p>
-              <p className="text-gray-500 text-sm mt-1">Te factureren bedrag</p>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Factureerbaar</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">€{billableAmount.toFixed(2)}</p>
+                  <p className="text-gray-500 text-sm mt-1">Te factureren bedrag</p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                  </svg>
+                </div>
+              </div>
             </div>
-            <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-              </svg>
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Actieve Projecten</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">{projects.length}</p>
-              <p className="text-gray-500 text-sm mt-1">Projecten</p>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Actieve Projecten</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{projects.length}</p>
+                  <p className="text-gray-500 text-sm mt-1">Projecten</p>
+                </div>
+                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+              </div>
             </div>
-            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
+          </>
+        ) : activeTab === 'kilometers' ? (
+          <>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Factureerbaar</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{billableKilometers.toFixed(0)} km</p>
+                  <p className="text-gray-500 text-sm mt-1">Factureerbare kilometers</p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                  </svg>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Zakelijke Ritten</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{kilometerEntries.filter(e => e.type === 'zakelijk').length}</p>
+                  <p className="text-gray-500 text-sm mt-1">Totaal ritten</p>
+                </div>
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Projecten</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{projects.length}</p>
+                  <p className="text-gray-500 text-sm mt-1">Actieve projecten</p>
+                </div>
+                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Deze Maand</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{totalHoursThisMonth.toFixed(1)}u</p>
+                  <p className="text-gray-500 text-sm mt-1">Totaal uren</p>
+                </div>
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Factureerbaar</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">€{billableAmount.toFixed(2)}</p>
+                  <p className="text-gray-500 text-sm mt-1">Te factureren bedrag</p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Kilometers</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{totalKilometersThisMonth.toFixed(0)} km</p>
+                  <p className="text-gray-500 text-sm mt-1">Deze maand</p>
+                </div>
+                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Zoeken</label>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Zoek in omschrijving, klant, project..."
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              <option value="all">Alle statussen</option>
-              <option value="draft">Concept</option>
-              <option value="billable">Factureerbaar</option>
-              <option value="billed">Gefactureerd</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Klant</label>
-            <select
-              value={filterClient}
-              onChange={(e) => setFilterClient(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              <option value="all">Alle klanten</option>
-              {clients.map(client => (
-                <option key={client.id} value={client.id}>{client.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Van datum</label>
-            <input
-              type="date"
-              value={filterDateFrom}
-              onChange={(e) => setFilterDateFrom(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tot datum</label>
-            <input
-              type="date"
-              value={filterDateTo}
-              onChange={(e) => setFilterDateTo(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-            />
+      {activeTab === 'uren' && (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Zoeken</label>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Zoek in omschrijving, klant, project..."
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="all">Alle statussen</option>
+                <option value="draft">Concept</option>
+                <option value="billable">Factureerbaar</option>
+                <option value="billed">Gefactureerd</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Klant</label>
+              <select
+                value={filterClient}
+                onChange={(e) => setFilterClient(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="all">Alle klanten</option>
+                {clients.map(client => (
+                  <option key={client.id} value={client.id}>{client.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Van datum</label>
+              <input
+                type="date"
+                value={filterDateFrom}
+                onChange={(e) => setFilterDateFrom(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tot datum</label>
+              <input
+                type="date"
+                value={filterDateTo}
+                onChange={(e) => setFilterDateTo(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {activeTab === 'kilometers' && (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Zoeken</label>
+              <input
+                type="text"
+                value={kilometerSearchTerm}
+                onChange={(e) => setKilometerSearchTerm(e.target.value)}
+                placeholder="Zoek in locaties, doel..."
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Type</label>
+              <select
+                value={kilometerFilterType}
+                onChange={(e) => setKilometerFilterType(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="all">Alle types</option>
+                <option value="zakelijk">Zakelijk</option>
+                <option value="privé">Privé</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Klant</label>
+              <select
+                value={kilometerFilterClient}
+                onChange={(e) => setKilometerFilterClient(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="all">Alle klanten</option>
+                {clients.map(client => (
+                  <option key={client.id} value={client.id}>{client.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Project</label>
+              <select
+                value={kilometerFilterProject}
+                onChange={(e) => setKilometerFilterProject(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="all">Alle projecten</option>
+                {projects.map(project => (
+                  <option key={project.id} value={project.id}>{project.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Van datum</label>
+              <input
+                type="date"
+                value={kilometerFilterDateFrom}
+                onChange={(e) => setKilometerFilterDateFrom(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tot datum</label>
+              <input
+                type="date"
+                value={kilometerFilterDateTo}
+                onChange={(e) => setKilometerFilterDateTo(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bulk Actions */}
-      {selectedEntries.length > 0 && (
+      {activeTab === 'uren' && selectedEntries.length > 0 && (
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4">
           <div className="flex items-center justify-between">
             <span className="text-blue-800 dark:text-blue-200 font-medium">
@@ -563,8 +971,39 @@ export default function TimeEntriesPage() {
         </div>
       )}
 
-      {/* Time Entries Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+      {activeTab === 'kilometers' && selectedKilometerEntries.length > 0 && (
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-green-800 dark:text-green-200 font-medium">
+              {selectedKilometerEntries.length} kilometer entries geselecteerd
+            </span>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handleBulkKilometerAction('mark-billable')}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+              >
+                Markeer als factureerbaar
+              </button>
+              <button
+                onClick={() => handleBulkKilometerAction('mark-private')}
+                className="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
+              >
+                Markeer als privé
+              </button>
+              <button
+                onClick={() => handleBulkKilometerAction('delete')}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+              >
+                Verwijderen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tables */}
+      {activeTab === 'uren' && (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-gray-700">
@@ -715,6 +1154,184 @@ export default function TimeEntriesPage() {
           </table>
         </div>
       </div>
+      )}
+
+      {activeTab === 'kilometers' && (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="px-6 py-3 text-left">
+                    <input
+                      type="checkbox"
+                      checked={selectedKilometerEntries.length === filteredKilometerEntries.length && filteredKilometerEntries.length > 0}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedKilometerEntries(filteredKilometerEntries.map(entry => entry.id))
+                        } else {
+                          setSelectedKilometerEntries([])
+                        }
+                      }}
+                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Datum
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Van → Naar
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Afstand
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Doel
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Project / Klant
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Factureerbaar
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Acties
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {filteredKilometerEntries.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="px-6 py-12 text-center">
+                      <div className="text-gray-500 dark:text-gray-400">
+                        <svg className="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <p className="text-lg font-medium mb-2">Geen kilometers gevonden</p>
+                        <p className="mb-4">Begin met het registreren van je eerste ritten</p>
+                        <button
+                          onClick={() => setShowAddKilometerModal(true)}
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                        >
+                          Nieuwe Rit Toevoegen
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredKilometerEntries.map((entry) => (
+                    <tr key={entry.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td className="px-6 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedKilometerEntries.includes(entry.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedKilometerEntries(prev => [...prev, entry.id])
+                            } else {
+                              setSelectedKilometerEntries(prev => prev.filter(id => id !== entry.id))
+                            }
+                          }}
+                          className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {new Date(entry.date).toLocaleDateString('nl-NL')}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900 dark:text-white font-medium">
+                          {entry.fromLocation}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          → {entry.toLocation}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {entry.distanceKm.toFixed(1)} km
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900 dark:text-white">
+                          {entry.purpose}
+                        </div>
+                        {entry.notes && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                            {entry.notes}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900 dark:text-white font-medium">
+                          {getProjectName(entry.project)}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {getClientName(entry.client)}
+                        </div>
+                        {!entry.client && !entry.project && (
+                          <div className="text-xs text-gray-400 dark:text-gray-500 italic">
+                            Losse rit
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          entry.type === 'zakelijk' 
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+                            : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                        }`}>
+                          {entry.type === 'zakelijk' ? 'Zakelijk' : 'Privé'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          entry.status === 'draft' 
+                            ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                            : entry.status === 'billable'
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+                            : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                        }`}>
+                          {entry.status === 'draft' ? 'Concept' : entry.status === 'billable' ? 'Factureerbaar' : 'Gefactureerd'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          entry.isBillable 
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                            : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                        }`}>
+                          {entry.isBillable ? '✅' : '❌'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleEditKilometerEntry(entry)}
+                            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300"
+                          >
+                            Bewerken
+                          </button>
+                          <button
+                            onClick={() => handleDeleteKilometerEntry(entry.id)}
+                            className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
+                          >
+                            Verwijderen
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Add Entry Modal */}
       {showAddModal && (
@@ -1073,6 +1690,198 @@ export default function TimeEntriesPage() {
                   className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
                   Toevoegen
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Kilometer Entry Modal */}
+      {showAddKilometerModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Nieuwe Rit Toevoegen</h3>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Datum
+                  </label>
+                  <input
+                    type="date"
+                    value={newKilometerEntry.date}
+                    onChange={(e) => setNewKilometerEntry(prev => ({ ...prev, date: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Type rit
+                  </label>
+                  <select
+                    value={newKilometerEntry.type}
+                    onChange={(e) => setNewKilometerEntry(prev => ({ ...prev, type: e.target.value as 'zakelijk' | 'privé' }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="zakelijk">Zakelijk</option>
+                    <option value="privé">Privé</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Status
+                  </label>
+                  <select
+                    value={newKilometerEntry.status}
+                    onChange={(e) => setNewKilometerEntry(prev => ({ ...prev, status: e.target.value as 'draft' | 'billable' | 'billed' }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="draft">Concept</option>
+                    <option value="billable">Factureerbaar</option>
+                    <option value="billed">Gefactureerd</option>
+                  </select>
+                </div>
+                <div></div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Van (adres)
+                  </label>
+                  <input
+                    type="text"
+                    value={newKilometerEntry.fromLocation}
+                    onChange={(e) => setNewKilometerEntry(prev => ({ ...prev, fromLocation: e.target.value }))}
+                    placeholder="Bijv. Amsterdam, Centraal Station"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Naar (adres)
+                  </label>
+                  <input
+                    type="text"
+                    value={newKilometerEntry.toLocation}
+                    onChange={(e) => setNewKilometerEntry(prev => ({ ...prev, toLocation: e.target.value }))}
+                    placeholder="Bijv. Utrecht, Hoog Catherijne"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Afstand (km)
+                  </label>
+                  <input
+                    type="number"
+                    value={newKilometerEntry.distanceKm}
+                    onChange={(e) => setNewKilometerEntry(prev => ({ ...prev, distanceKm: parseFloat(e.target.value) || 0 }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Doel van de rit
+                  </label>
+                  <select
+                    value={newKilometerEntry.purpose}
+                    onChange={(e) => setNewKilometerEntry(prev => ({ ...prev, purpose: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="">Selecteer doel</option>
+                    <option value="Klantbezoek">Klantbezoek</option>
+                    <option value="Levering">Levering</option>
+                    <option value="Vergadering">Vergadering</option>
+                    <option value="Inkoop">Inkoop</option>
+                    <option value="Overig">Overig</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Project (optioneel)
+                  </label>
+                  <select
+                    value={newKilometerEntry.project}
+                    onChange={(e) => setNewKilometerEntry(prev => ({ ...prev, project: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="">Geen project</option>
+                    {projects.map(project => (
+                      <option key={project.id} value={project.id}>
+                        {project.name} {project.client ? `(${getClientName(project.client)})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Klant (optioneel)
+                  </label>
+                  <select
+                    value={newKilometerEntry.client}
+                    onChange={(e) => setNewKilometerEntry(prev => ({ ...prev, client: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="">Geen klant</option>
+                    {clients.map(client => (
+                      <option key={client.id} value={client.id}>{client.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="isBillable"
+                  checked={newKilometerEntry.isBillable}
+                  onChange={(e) => setNewKilometerEntry(prev => ({ ...prev, isBillable: e.target.checked }))}
+                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <label htmlFor="isBillable" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  🧾 Factureerbare rit
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Opmerkingen (optioneel)
+                </label>
+                <textarea
+                  value={newKilometerEntry.notes}
+                  onChange={(e) => setNewKilometerEntry(prev => ({ ...prev, notes: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  rows={3}
+                  placeholder="Extra notities over de rit..."
+                />
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowAddKilometerModal(false)}
+                  className="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Annuleren
+                </button>
+                <button
+                  onClick={handleAddKilometerEntry}
+                  disabled={!newKilometerEntry.date || !newKilometerEntry.fromLocation || !newKilometerEntry.toLocation || !newKilometerEntry.distanceKm || !newKilometerEntry.purpose}
+                  className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  ✅ Opslaan
                 </button>
               </div>
             </div>

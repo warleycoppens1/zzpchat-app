@@ -52,16 +52,23 @@ export default function WhatsAppSetupPage() {
                       <div className="grid grid-cols-12 gap-px h-full p-2">
                         {Array.from({ length: 144 }).map((_, i) => {
                           // Create more realistic QR pattern with corner squares and data patterns
+                          // Use deterministic pseudo-random based on index to avoid hydration mismatch
                           const row = Math.floor(i / 12)
                           const col = i % 12
                           const isCorner = (row < 3 && col < 3) || (row < 3 && col > 8) || (row > 8 && col < 3)
                           const isCenter = row > 4 && row < 7 && col > 4 && col < 7
                           const isData = !isCorner && !isCenter
                           
+                          // Deterministic pseudo-random function based on index
+                          const pseudoRandom = (seed: number) => {
+                            const x = Math.sin(seed) * 10000
+                            return x - Math.floor(x)
+                          }
+                          
                           let shouldFill = false
                           if (isCorner) shouldFill = true
-                          else if (isCenter) shouldFill = Math.random() > 0.3
-                          else if (isData) shouldFill = Math.random() > 0.4
+                          else if (isCenter) shouldFill = pseudoRandom(i) > 0.3
+                          else if (isData) shouldFill = pseudoRandom(i * 7 + 13) > 0.4
                           
                           return (
                             <div

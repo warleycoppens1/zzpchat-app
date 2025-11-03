@@ -240,6 +240,220 @@ async function main() {
   }
   console.log(`✅ Created ${quotes.length} demo quotes`)
 
+  // Create automation templates
+  console.log('🤖 Creating automation templates...')
+  const templates = [
+    {
+      id: 'template-email-summary',
+      name: 'Dagelijkse E-mail Samenvatting',
+      description: 'Ontvang elke ochtend een samenvatting van je ongelezen e-mails',
+      category: 'email',
+      icon: '📧',
+      triggerType: 'schedule',
+      isDefault: true,
+      isPublic: true,
+      order: 1,
+      defaultTriggerConfig: {
+        schedule: 'daily',
+        time: '08:00',
+        timezone: 'Europe/Amsterdam'
+      },
+      defaultActions: [
+        {
+          type: 'send_notification',
+          config: {
+            title: 'E-mail Samenvatting',
+            message: 'Je dagelijkse e-mail overzicht is klaar'
+          }
+        }
+      ],
+      configSchema: {
+        type: 'object',
+        properties: {
+          time: {
+            type: 'string',
+            title: 'Tijd',
+            default: '08:00'
+          }
+        }
+      }
+    },
+    {
+      id: 'template-agenda-summary',
+      name: 'Agenda Overzicht',
+      description: 'Ontvang elke ochtend een overzicht van je agendapunten voor vandaag',
+      category: 'calendar',
+      icon: '📅',
+      triggerType: 'schedule',
+      isDefault: true,
+      isPublic: true,
+      order: 2,
+      defaultTriggerConfig: {
+        schedule: 'daily',
+        time: '07:30',
+        timezone: 'Europe/Amsterdam'
+      },
+      defaultActions: [
+        {
+          type: 'send_notification',
+          config: {
+            title: 'Agenda Overzicht',
+            message: 'Je agenda voor vandaag'
+          }
+        }
+      ],
+      configSchema: {
+        type: 'object',
+        properties: {
+          time: {
+            type: 'string',
+            title: 'Tijd',
+            default: '07:30'
+          }
+        }
+      }
+    },
+    {
+      id: 'template-invoice-reminder',
+      name: 'Factuur Herinneringen',
+      description: 'Verstuur automatisch herinneringen voor openstaande facturen',
+      category: 'invoice',
+      icon: '📄',
+      triggerType: 'schedule',
+      isDefault: false,
+      isPublic: true,
+      order: 3,
+      defaultTriggerConfig: {
+        schedule: 'daily',
+        time: '09:00',
+        timezone: 'Europe/Amsterdam'
+      },
+      defaultActions: [
+        {
+          type: 'send_email',
+          config: {
+            template: 'friendly',
+            subject: 'Herinnering: Openstaande factuur'
+          }
+        }
+      ],
+      configSchema: {
+        type: 'object',
+        properties: {
+          daysOverdue: {
+            type: 'number',
+            title: 'Dagen na vervaldatum',
+            default: 7
+          },
+          time: {
+            type: 'string',
+            title: 'Tijd',
+            default: '09:00'
+          }
+        }
+      }
+    },
+    {
+      id: 'template-quote-to-invoice',
+      name: 'Offerte → Factuur',
+      description: 'Maak automatisch een factuur wanneer een offerte wordt geaccepteerd',
+      category: 'quote',
+      icon: '📋',
+      triggerType: 'event',
+      isDefault: false,
+      isPublic: true,
+      order: 4,
+      defaultTriggerConfig: {
+        event: 'quote.accepted'
+      },
+      defaultActions: [
+        {
+          type: 'create_invoice',
+          config: {}
+        },
+        {
+          type: 'send_email',
+          config: {
+            template: 'invoice_sent'
+          }
+        }
+      ],
+      configSchema: {
+        type: 'object',
+        properties: {}
+      }
+    },
+    {
+      id: 'template-calendar-to-time',
+      name: 'Calendar → Urenregistratie',
+      description: 'Registreer automatisch uren op basis van agenda-afspraken',
+      category: 'time',
+      icon: '⏰',
+      triggerType: 'event',
+      isDefault: false,
+      isPublic: true,
+      order: 5,
+      defaultTriggerConfig: {
+        event: 'calendar.event_created'
+      },
+      defaultActions: [
+        {
+          type: 'create_time_entry',
+          config: {
+            matchProject: true,
+            matchClient: true
+          }
+        }
+      ],
+      configSchema: {
+        type: 'object',
+        properties: {
+          tag: {
+            type: 'string',
+            title: 'Tag voor tracking',
+            default: '#uren',
+            description: 'Alleen events met deze tag tracken'
+          }
+        }
+      }
+    },
+    {
+      id: 'template-kilometer-tracking',
+      name: 'Kilometer Registratie',
+      description: 'Registreer automatisch kilometers op basis van agenda-locaties',
+      category: 'kilometer',
+      icon: '🚗',
+      triggerType: 'event',
+      isDefault: false,
+      isPublic: true,
+      order: 6,
+      defaultTriggerConfig: {
+        event: 'calendar.event_with_location'
+      },
+      defaultActions: [
+        {
+          type: 'create_kilometer_entry',
+          config: {
+            calculateDistance: true
+          }
+        }
+      ],
+      configSchema: {
+        type: 'object',
+        properties: {}
+      }
+    }
+  ]
+
+  for (const template of templates) {
+    await prisma.automationTemplate.upsert({
+      where: { id: template.id },
+      update: {},
+      create: template
+    })
+  }
+  console.log(`✅ Created ${templates.length} automation templates`)
+
   console.log('🎉 Seed completed successfully!')
 }
 

@@ -85,15 +85,79 @@ export function createAuthOptions(): NextAuthOptions {
       strategy: 'jwt',
     },
     callbacks: {
-      async jwt({ token, user }) {
+      async signIn({ user, account, profile }) {
+        if (account?.provider === 'google' && user.email) {
+          try {
+            const prisma = await getPrisma()
+            if (!prisma) return true
+
+            // Check if user exists
+            const existingUser = await prisma.user.findUnique({
+              where: { email: user.email }
+            })
+
+            if (!existingUser) {
+              // Create new user with Google data
+              await prisma.user.create({
+                data: {
+                  email: user.email,
+                  name: user.name || profile?.name || 'Google User',
+                  image: user.image || profile?.picture,
+                  emailVerified: new Date(),
+                }
+              })
+            } else {
+              // Update existing user with Google data if missing
+              await prisma.user.update({
+                where: { email: user.email },
+                data: {
+                  name: existingUser.name || user.name || profile?.name,
+                  image: existingUser.image || user.image || profile?.picture,
+                  emailVerified: existingUser.emailVerified || new Date(),
+                }
+              })
+            }
+          } catch (error) {
+            console.error('Error syncing Google user:', error)
+          }
+        }
+        return true
+      },
+      async jwt({ token, user, account }) {
         if (user) {
           token.id = user.id
+          token.email = user.email
+          token.name = user.name
+          token.image = user.image
         }
+        
+        // For Google login, fetch fresh user data
+        if (account?.provider === 'google' && token.email) {
+          try {
+            const prisma = await getPrisma()
+            if (prisma) {
+              const dbUser = await prisma.user.findUnique({
+                where: { email: token.email }
+              })
+              if (dbUser) {
+                token.id = dbUser.id
+                token.name = dbUser.name
+                token.image = dbUser.image
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching user data:', error)
+          }
+        }
+        
         return token
       },
       async session({ session, token }) {
         if (token && session.user) {
           (session.user as any).id = token.id as string
+          session.user.name = token.name as string
+          session.user.email = token.email as string
+          session.user.image = token.image as string
         }
         return session
       },

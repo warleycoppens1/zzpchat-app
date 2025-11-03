@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAuth } from '@/lib/auth-middleware';
 import { z } from 'zod';
 
 const searchContextSchema = z.object({
-  userId: z.string().min(1, 'User ID is required'),
   query: z.string().min(1, 'Query is required'),
   intent: z.string().optional(),
   limit: z.number().min(1).max(20).default(5),
@@ -18,19 +18,17 @@ const searchContextSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // Get authenticated user
+    const { userId } = await requireAuth(request)
+    
     const body = await request.json();
-    const { userId, query, intent, limit, filters } = searchContextSchema.parse(body);
+    const { query, intent, limit, filters } = searchContextSchema.parse(body);
 
-    // Verify user exists
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true },
-    });
-
-    if (!user) {
+    // Use authenticated userId from session instead of body
+    if (!userId) {
       return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
+        { error: 'Unauthorized' },
+        { status: 401 }
       );
     }
 
@@ -143,6 +141,7 @@ export async function POST(request: NextRequest) {
         score: calculateScore(query, client.name, client.company, client.notes),
         metadata: {
           type: 'client_info',
+          id: client.id,
           clientName: client.name,
           company: client.company,
           lastUpdated: client.createdAt.toISOString()
@@ -154,6 +153,7 @@ export async function POST(request: NextRequest) {
         score: calculateScore(query, invoice.number, invoice.client?.name, invoice.description),
         metadata: {
           type: 'invoice',
+          id: invoice.id,
           invoiceNumber: invoice.number,
           amount: Number(invoice.amount),
           status: invoice.status,
@@ -166,6 +166,7 @@ export async function POST(request: NextRequest) {
         score: calculateScore(query, quote.number, quote.client?.name, quote.description),
         metadata: {
           type: 'quote',
+          id: quote.id,
           quoteNumber: quote.number,
           amount: Number(quote.amount),
           status: quote.status,

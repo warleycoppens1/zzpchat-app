@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAuth } from '@/lib/auth-middleware'
 import { handleApiError } from '@/lib/errors'
 import { z } from 'zod'
+import { autoIndexClient } from '@/lib/rag/auto-index'
 
 const createClientSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -66,6 +67,11 @@ export async function POST(request: NextRequest) {
         }
       }
     })
+
+    // Auto-index for RAG
+    autoIndexClient(userId, client.id).catch(err => 
+      console.error('Failed to auto-index client:', err)
+    )
 
     return NextResponse.json({ client }, { status: 201 })
   } catch (error) {

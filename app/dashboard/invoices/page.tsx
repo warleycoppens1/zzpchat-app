@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 
 interface LineItem {
   id: string
@@ -40,7 +42,33 @@ interface InvoiceData {
   currency: string
 }
 
+interface ExistingInvoice {
+  id: string
+  number: string
+  amount: number
+  status: 'DRAFT' | 'SENT' | 'PAID' | 'OVERDUE' | 'CANCELLED'
+  clientId: string
+  dueDate: string
+  sentAt: string | null
+  paidAt: string | null
+  description: string | null
+  createdAt: string
+  updatedAt: string
+  client: {
+    name: string
+    company: string | null
+    email: string | null
+  }
+}
+
 export default function InvoicesPage() {
+  const { data: session } = useSession()
+  const searchParams = useSearchParams()
+  const [view, setView] = useState<'list' | 'create' | 'edit'>('list')
+  const [invoices, setInvoices] = useState<ExistingInvoice[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedInvoice, setSelectedInvoice] = useState<ExistingInvoice | null>(null)
+  
   const [invoiceData, setInvoiceData] = useState<InvoiceData>({
     invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
     date: new Date().toISOString().split('T')[0],
@@ -81,7 +109,227 @@ export default function InvoicesPage() {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
   const [showTemplateModal, setShowTemplateModal] = useState(false)
   const [templateName, setTemplateName] = useState('')
+  const [templates, setTemplates] = useState<any[]>([])
+  const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
+  const [clients, setClients] = useState<any[]>([])
+  const [selectedClientId, setSelectedClientId] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Load invoices on component mount and handle URL parameters
+  useEffect(() => {
+    const viewParam = searchParams.get('view')
+    if (viewParam === 'create' || viewParam === 'edit') {
+      setView(viewParam)
+      if (viewParam === 'create') {
+        loadTemplates()
+        loadClients()
+      }
+    } else if (session?.user?.id && view === 'list') {
+      loadInvoices()
+    }
+  }, [session, searchParams, view])
+
+  const loadInvoices = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/invoices')
+      if (response.ok) {
+        const data = await response.json()
+        setInvoices(data.invoices || [])
+      }
+    } catch (error) {
+      console.error('Error loading invoices:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadTemplates = async () => {
+    try {
+      const response = await fetch('/api/templates?type=INVOICE')
+      if (response.ok) {
+        const data = await response.json()
+        setTemplates(data.templates || [])
+      }
+    } catch (error) {
+      console.error('Error loading templates:', error)
+    }
+  }
+
+  const loadClients = async () => {
+    try {
+      const response = await fetch('/api/clients')
+      if (response.ok) {
+        const data = await response.json()
+        setClients(data.clients || [])
+      }
+    } catch (error) {
+      console.error('Error loading clients:', error)
+    }
+  }
+
+  const handleCreateInvoice = async () => {
+    try {
+      if (!selectedClientId) {
+        alert('Selecteer eerst een klant voordat je de factuur aanmaakt.')
+        return
+      }
+
+      const invoicePayload = {
+        clientId: selectedClientId,
+        description: `Factuur ${invoiceData.invoiceNumber}`,
+        dueDate: invoiceData.dueDate,
+        lineItems: invoiceData.lineItems.map(item => ({
+          description: item.description,
+          quantity: item.quantity,
+          rate: item.rate,
+          amount: item.amount
+        }))
+      }
+
+      const response = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(invoicePayload),
+      })
+
+      if (response.ok) {
+        await loadInvoices()
+        setView('list')
+        // Reset form
+        setInvoiceData({
+          invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
+          date: new Date().toISOString().split('T')[0],
+          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          billTo: { name: '', company: '', address: '', email: '' },
+          billFrom: { name: 'Jan Jansen', company: 'Jansen ZZP', address: 'Straatnaam 123, 1234 AB Amsterdam', email: 'jan@jansenzzp.nl', phone: '+31 6 12345678' },
+          lineItems: [{ id: '1', description: 'Website ontwikkeling', quantity: 40, rate: 75, amount: 3000 }],
+          subtotal: 3000,
+          taxRate: 21,
+          taxAmount: 630,
+          discountRate: 0,
+          discountAmount: 0,
+          shipping: 0,
+          total: 3630,
+          notes: '',
+          currency: 'EUR'
+        })
+      } else {
+        const errorData = await response.json()
+        console.error('Error creating invoice:', errorData)
+        alert('Er is een fout opgetreden bij het aanmaken van de factuur. Controleer of alle velden correct zijn ingevuld.')
+      }
+    } catch (error) {
+      console.error('Error creating invoice:', error)
+      alert('Er is een fout opgetreden bij het aanmaken van de factuur.')
+    }
+  }
+
+  const handleDownloadPDF = async (invoiceId: string) => {
+    try {
+      setIsGeneratingPDF(true)
+      const response = await fetch(`/api/invoices/${invoiceId}/pdf`)
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `factuur-${invoiceId}.pdf`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      }
+    } catch (error) {
+      console.error('Error downloading PDF:', error)
+    } finally {
+      setIsGeneratingPDF(false)
+    }
+  }
+
+  const handleDownloadPreviewPDF = async () => {
+    try {
+      setIsGeneratingPDF(true)
+      
+      // Create a temporary invoice object for PDF generation
+      const tempInvoice = {
+        id: 'preview',
+        number: invoiceData.invoiceNumber,
+        amount: invoiceData.total,
+        status: 'DRAFT',
+        clientId: 'preview-client',
+        userId: session?.user?.id || 'preview-user',
+        dueDate: invoiceData.dueDate ? new Date(invoiceData.dueDate) : null,
+        description: invoiceData.description,
+        lineItems: invoiceData.lineItems,
+        currency: invoiceData.currency,
+        taxRate: invoiceData.taxRate,
+        taxAmount: invoiceData.taxAmount,
+        discountRate: invoiceData.discountRate,
+        discountAmount: invoiceData.discountAmount,
+        shipping: invoiceData.shipping,
+        subtotal: invoiceData.subtotal,
+        billFrom: invoiceData.billFrom,
+        billTo: invoiceData.billTo,
+        createdAt: new Date(),
+        client: {
+          id: 'preview-client',
+          name: invoiceData.billTo.name || 'Preview Klant',
+          company: invoiceData.billTo.company,
+          email: invoiceData.billTo.email
+        }
+      }
+
+      // Generate PDF using the same endpoint
+      const response = await fetch('/api/invoices/preview/pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ invoice: tempInvoice })
+      })
+
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `factuur-${invoiceData.invoiceNumber}-preview.pdf`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      }
+    } catch (error) {
+      console.error('Error downloading preview PDF:', error)
+    } finally {
+      setIsGeneratingPDF(false)
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'DRAFT': return 'bg-gray-100 text-gray-800'
+      case 'SENT': return 'bg-blue-100 text-blue-800'
+      case 'PAID': return 'bg-green-100 text-green-800'
+      case 'OVERDUE': return 'bg-red-100 text-red-800'
+      case 'CANCELLED': return 'bg-gray-100 text-gray-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'DRAFT': return 'Concept'
+      case 'SENT': return 'Verzonden'
+      case 'PAID': return 'Betaald'
+      case 'OVERDUE': return 'Vervallen'
+      case 'CANCELLED': return 'Geannuleerd'
+      default: return status
+    }
+  }
 
   const updateLineItem = (id: string, field: keyof LineItem, value: string | number) => {
     const updatedItems = invoiceData.lineItems.map(item => {
@@ -155,12 +403,57 @@ export default function InvoicesPage() {
     }, 2000)
   }
 
-  const saveTemplate = () => {
+  const saveTemplate = async () => {
     if (templateName.trim()) {
-      // Here you would save to database
-      console.log('Template saved:', templateName)
-      setShowTemplateModal(false)
-      setTemplateName('')
+      try {
+        const templateData = {
+          name: templateName,
+          type: 'INVOICE',
+          data: {
+            billFrom: invoiceData.billFrom,
+            lineItems: invoiceData.lineItems,
+            taxRate: invoiceData.taxRate,
+            discountRate: invoiceData.discountRate,
+            shipping: invoiceData.shipping,
+            notes: invoiceData.notes,
+          }
+        }
+
+        const response = await fetch('/api/templates', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(templateData)
+        })
+
+        if (response.ok) {
+          console.log('Template saved successfully')
+          setShowTemplateModal(false)
+          setTemplateName('')
+          // Reload templates to show the new one
+          loadTemplates()
+        } else {
+          console.error('Failed to save template')
+        }
+      } catch (error) {
+        console.error('Error saving template:', error)
+      }
+    }
+  }
+
+  const loadTemplate = (template: any) => {
+    if (template.data) {
+      setInvoiceData(prev => ({
+        ...prev,
+        billFrom: template.data.billFrom || prev.billFrom,
+        lineItems: template.data.lineItems || prev.lineItems,
+        taxRate: template.data.taxRate || prev.taxRate,
+        discountRate: template.data.discountRate || prev.discountRate,
+        shipping: template.data.shipping || prev.shipping,
+        notes: template.data.notes || prev.notes,
+      }))
+      setShowTemplateDropdown(false)
     }
   }
 
@@ -169,17 +462,184 @@ export default function InvoicesPage() {
     window.open('/dashboard/ai?context=invoice&invoiceNumber=' + invoiceData.invoiceNumber, '_blank')
   }
 
+  const isFormValid = () => {
+    return (
+      selectedClientId !== '' &&
+      invoiceData.billTo.name.trim() !== '' &&
+      invoiceData.billTo.company.trim() !== '' &&
+      invoiceData.billTo.email.trim() !== '' &&
+      invoiceData.lineItems.length > 0 &&
+      invoiceData.lineItems.every(item => 
+        item.description.trim() !== '' && 
+        item.quantity > 0 && 
+        item.rate > 0
+      ) &&
+      invoiceData.total > 0
+    )
+  }
+
+  // Render list view
+  if (view === 'list') {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Facturen</h1>
+            <p className="mt-2 text-gray-600 dark:text-gray-300">
+              Beheer je facturen en download PDF's
+            </p>
+          </div>
+          <button
+            onClick={() => setView('create')}
+            className="bg-indigo-600 text-white px-6 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Nieuwe Factuur
+          </button>
+        </div>
+
+        {/* Invoices List */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+          {loading ? (
+            <div className="p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+              <p className="mt-2 text-gray-600 dark:text-gray-400">Facturen laden...</p>
+            </div>
+          ) : invoices.length === 0 ? (
+            <div className="p-8 text-center">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Geen facturen</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Begin met het maken van je eerste factuur.</p>
+              <div className="mt-6">
+                <button
+                  onClick={() => setView('create')}
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+                >
+                  Nieuwe Factuur
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Factuur
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Klant
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Bedrag
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Vervaldatum
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Acties
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {invoices.map((invoice) => (
+                    <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {invoice.number}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {new Date(invoice.createdAt).toLocaleDateString('nl-NL')}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {invoice.client.name}
+                          </div>
+                          {invoice.client.company && (
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {invoice.client.company}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        €{invoice.amount.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(invoice.status)}`}>
+                          {getStatusText(invoice.status)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('nl-NL') : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleDownloadPDF(invoice.id)}
+                            disabled={isGeneratingPDF}
+                            className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                          >
+                            PDF
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedInvoice(invoice)
+                              setView('edit')
+                            }}
+                            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300"
+                          >
+                            Bewerken
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Render create/edit view
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Factuur Generator</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            {view === 'edit' ? 'Factuur Bewerken' : 'Factuur Generator'}
+          </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-300">
             Maak professionele facturen en exporteer ze naar PDF
           </p>
         </div>
-        <div className="flex space-x-3">
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setView('list')}
+            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            title="Terug naar lijst"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          
           <button
             onClick={() => setShowTemplateModal(true)}
             className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -187,7 +647,7 @@ export default function InvoicesPage() {
             Opslaan als Template
           </button>
           <button
-            onClick={generatePDF}
+            onClick={handleDownloadPreviewPDF}
             disabled={isGeneratingPDF}
             className="bg-indigo-600 text-white px-6 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center"
           >
@@ -223,6 +683,42 @@ export default function InvoicesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Form Section */}
         <div className="space-y-6">
+          {/* Client Selection */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Klant Selectie</h2>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Selecteer Klant *
+              </label>
+              <select
+                value={selectedClientId}
+                onChange={(e) => {
+                  setSelectedClientId(e.target.value)
+                  const selectedClient = clients.find(c => c.id === e.target.value)
+                  if (selectedClient) {
+                    setInvoiceData(prev => ({
+                      ...prev,
+                      billTo: {
+                        name: selectedClient.name || '',
+                        company: selectedClient.company || '',
+                        address: selectedClient.address || '',
+                        email: selectedClient.email || ''
+                      }
+                    }))
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="">Selecteer een klant...</option>
+                {clients.map((client) => (
+                  <option key={client.id} value={client.id}>
+                    {client.company ? `${client.company} - ${client.name}` : client.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           {/* Invoice Header */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Factuur Details</h2>
@@ -500,7 +996,48 @@ export default function InvoicesPage() {
 
         {/* Preview Section */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Preview</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Preview</h2>
+            
+            {/* Template Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
+                className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center"
+              >
+                <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Template Laden
+                <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {showTemplateDropdown && (
+                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl shadow-lg z-10">
+                  <div className="p-3">
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Beschikbare Templates</div>
+                    {templates.length === 0 ? (
+                      <div className="text-sm text-gray-500 dark:text-gray-400 py-2">Geen templates beschikbaar</div>
+                    ) : (
+                      <div className="space-y-1">
+                        {templates.map((template) => (
+                          <button
+                            key={template.id}
+                            onClick={() => loadTemplate(template)}
+                            className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                          >
+                            {template.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
           <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
             <div className="max-w-md mx-auto">
               {/* Invoice Header */}
@@ -606,6 +1143,21 @@ export default function InvoicesPage() {
             </div>
           </div>
         </div>
+
+        {/* Create Invoice Button */}
+        {isFormValid() && (
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={handleCreateInvoice}
+              className="bg-green-600 text-white px-8 py-3 rounded-xl text-lg font-medium hover:bg-green-700 transition-colors flex items-center"
+            >
+              <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Maak Factuur
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Template Modal */}

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 
 interface UserProfile {
   name: string
@@ -43,14 +44,28 @@ interface SubscriptionSettings {
 }
 
 export default function SettingsPage() {
+  const { data: session } = useSession()
   const [activeTab, setActiveTab] = useState('profile')
   
   const [profile, setProfile] = useState<UserProfile>({
-    name: 'Jan de Vries',
-    email: 'jan@example.com',
+    name: session?.user?.name || '',
+    email: session?.user?.email || '',
+    profileImage: session?.user?.image || '',
     language: 'nl',
     region: 'NL'
   })
+
+  // Update profile when session changes
+  useEffect(() => {
+    if (session?.user) {
+      setProfile(prev => ({
+        ...prev,
+        name: session.user.name || prev.name,
+        email: session.user.email || prev.email,
+        profileImage: session.user.image || prev.profileImage,
+      }))
+    }
+  }, [session])
 
   const [aiSettings, setAISettings] = useState<AISettings>({
     assistantName: 'Lisa',
@@ -132,12 +147,39 @@ export default function SettingsPage() {
     setTheme(prev => ({ ...prev, accentColor: color }))
   }
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (file) {
+    if (file && session?.user?.id) {
       const reader = new FileReader()
-      reader.onload = (e) => {
-        setProfile(prev => ({ ...prev, profileImage: e.target?.result as string }))
+      reader.onload = async (e) => {
+        const imageDataUrl = e.target?.result as string
+        setProfile(prev => ({ ...prev, profileImage: imageDataUrl }))
+        
+        try {
+          // Update user profile in database
+          const response = await fetch('/api/user/profile', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              image: imageDataUrl
+            })
+          })
+          
+          if (response.ok) {
+            // Update session data
+            const { update } = await import('next-auth/react')
+            await update({
+              user: {
+                ...session.user,
+                image: imageDataUrl
+              }
+            })
+          }
+        } catch (error) {
+          console.error('Error updating profile image:', error)
+        }
       }
       reader.readAsDataURL(file)
     }

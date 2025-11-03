@@ -39,5 +39,11 @@
       "destination": "/dashboard",
       "permanent": false
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/run-automations",
+      "schedule": "* * * * *"
+    }
   ]
 }

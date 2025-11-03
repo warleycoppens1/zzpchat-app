@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 interface Integration {
   id: string
@@ -30,6 +31,7 @@ interface IntegrationSettings {
 }
 
 export default function IntegrationsPage() {
+  const searchParams = useSearchParams()
   const [integrations, setIntegrations] = useState<Integration[]>([
     {
       id: 'gmail',
@@ -72,27 +74,11 @@ export default function IntegrationsPage() {
       status: 'disconnected'
     },
     {
-      id: 'dropbox',
-      name: 'Dropbox',
-      description: 'Alternatieve cloud storage voor documenten en bestanden',
-      logo: '📦',
-      category: 'storage',
-      status: 'disconnected'
-    },
-    {
       id: 'onedrive',
       name: 'Microsoft OneDrive',
       description: 'Zakelijke cloud storage voor Microsoft 365 gebruikers',
       logo: '🗂️',
       category: 'storage',
-      status: 'disconnected'
-    },
-    {
-      id: 'linkedin',
-      name: 'LinkedIn',
-      description: 'Zakelijke connecties en berichten voor lead generation',
-      logo: '💼',
-      category: 'social',
       status: 'disconnected'
     }
   ])
@@ -100,6 +86,22 @@ export default function IntegrationsPage() {
   const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null)
   const [isConnecting, setIsConnecting] = useState<string | null>(null)
+
+  // Check for OAuth callback results
+  useEffect(() => {
+    const success = searchParams?.get('success')
+    const error = searchParams?.get('error')
+
+    if (success === 'connected') {
+      // Refresh integrations list
+      // TODO: Fetch actual integration status from API
+      window.location.href = '/dashboard/integrations'
+    }
+
+    if (error) {
+      alert(`Connection error: ${error}`)
+    }
+  }, [searchParams])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -133,21 +135,38 @@ export default function IntegrationsPage() {
   const handleConnect = async (integrationId: string) => {
     setIsConnecting(integrationId)
     
-    // Simulate OAuth flow
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    setIntegrations(prev => prev.map(integration => 
-      integration.id === integrationId 
-        ? { 
-            ...integration, 
-            status: 'connected', 
-            connectedAt: new Date(),
-            expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) // 90 days
-          }
-        : integration
-    ))
-    
-    setIsConnecting(null)
+    try {
+      // Map integration IDs to API provider names
+      const providerMap: Record<string, string> = {
+        'gmail': 'google',
+        'google-calendar': 'google-calendar',
+        'google-drive': 'google-drive',
+        'outlook': 'outlook',
+        'outlook-calendar': 'outlook-calendar'
+      }
+
+      const provider = providerMap[integrationId] || integrationId
+
+      // Get OAuth URL from API
+      const response = await fetch(`/api/integrations/${provider}/connect`)
+      
+      if (!response.ok) {
+        throw new Error('Failed to initiate OAuth flow')
+      }
+
+      const data = await response.json()
+      
+      // Redirect to OAuth provider
+      if (data.authUrl) {
+        window.location.href = data.authUrl
+      } else {
+        throw new Error('No auth URL received')
+      }
+    } catch (error) {
+      console.error('Connection error:', error)
+      setIsConnecting(null)
+      alert('Failed to connect integration. Please try again.')
+    }
   }
 
   const handleDisconnect = (integrationId: string) => {

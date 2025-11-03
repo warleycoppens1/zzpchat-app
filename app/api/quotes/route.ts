@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAuth } from '@/lib/auth-middleware'
 import { handleApiError } from '@/lib/errors'
 import { z } from 'zod'
+import { autoIndexQuote } from '@/lib/rag/auto-index'
 
 const lineItemSchema = z.object({
   description: z.string().min(1, 'Description is required'),
@@ -130,6 +131,11 @@ export async function POST(request: NextRequest) {
         }
       }
     })
+
+    // Auto-index for RAG
+    autoIndexQuote(userId, quote.id).catch(err => 
+      console.error('Failed to auto-index quote:', err)
+    )
 
     return NextResponse.json({ quote }, { status: 201 })
   } catch (error) {

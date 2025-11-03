@@ -1,0 +1,778 @@
+{
+  "name": "ZzpChat AI Assistant",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "zzpchat-ai-assistant"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-invoice",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "create_invoice",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "condition-quote",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "create_quote",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "condition-time",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "add_time_entry",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "condition-kilometer",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "add_kilometer",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "condition-contact",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "create_contact",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "condition-search",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "search_contacts",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "condition-get-invoices",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "get_invoices",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "condition-get-quotes",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "get_quotes",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "condition-ai",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "ai_intent",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "condition-context",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "context_search",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "switch-action",
+      "name": "Route Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZZPCHAT_API_URL }}/api/webhooks/n8n",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.N8N_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"create_invoice\",\n  \"parameters\": {\n    \"clientId\": \"{{ $json.body.parameters.clientId }}\",\n    \"description\": \"{{ $json.body.parameters.description }}\",\n    \"dueDate\": \"{{ $json.body.parameters.dueDate }}\",\n    \"lineItems\": {{ $json.body.parameters.lineItems }},\n    \"taxRate\": {{ $json.body.parameters.taxRate || 21.0 }}\n  },\n  \"userId\": \"{{ $json.body.userId }}\"\n}",
+        "options": {}
+      },
+      "id": "create-invoice",
+      "name": "Create Invoice",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 100],
+      "notes": "Creates a new invoice for the specified client"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZZPCHAT_API_URL }}/api/webhooks/n8n",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.N8N_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"create_quote\",\n  \"parameters\": {\n    \"clientId\": \"{{ $json.body.parameters.clientId }}\",\n    \"description\": \"{{ $json.body.parameters.description }}\",\n    \"validUntil\": \"{{ $json.body.parameters.validUntil }}\",\n    \"lineItems\": {{ $json.body.parameters.lineItems }},\n    \"taxRate\": {{ $json.body.parameters.taxRate || 21.0 }}\n  },\n  \"userId\": \"{{ $json.body.userId }}\"\n}",
+        "options": {}
+      },
+      "id": "create-quote",
+      "name": "Create Quote",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 200],
+      "notes": "Creates a new quote/offerte for the specified client"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZZPCHAT_API_URL }}/api/webhooks/n8n",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.N8N_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"add_time_entry\",\n  \"parameters\": {\n    \"project\": \"{{ $json.body.parameters.project }}\",\n    \"hours\": {{ $json.body.parameters.hours }},\n    \"date\": \"{{ $json.body.parameters.date || $now.toISOString().split('T')[0] }}\",\n    \"notes\": \"{{ $json.body.parameters.notes }}\",\n    \"clientId\": \"{{ $json.body.parameters.clientId }}\",\n    \"billable\": {{ $json.body.parameters.billable !== undefined ? $json.body.parameters.billable : true }}\n  },\n  \"userId\": \"{{ $json.body.userId }}\"\n}",
+        "options": {}
+      },
+      "id": "add-time-entry",
+      "name": "Add Time Entry",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300],
+      "notes": "Adds a time entry for urenregistratie"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZZPCHAT_API_URL }}/api/webhooks/n8n",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.N8N_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"add_kilometer\",\n  \"parameters\": {\n    \"date\": \"{{ $json.body.parameters.date || $now.toISOString().split('T')[0] }}\",\n    \"fromLocation\": \"{{ $json.body.parameters.fromLocation }}\",\n    \"toLocation\": \"{{ $json.body.parameters.toLocation }}\",\n    \"distanceKm\": {{ $json.body.parameters.distanceKm }},\n    \"purpose\": \"{{ $json.body.parameters.purpose }}\",\n    \"type\": \"{{ $json.body.parameters.type || 'zakelijk' }}\",\n    \"notes\": \"{{ $json.body.parameters.notes }}\",\n    \"isBillable\": {{ $json.body.parameters.isBillable !== undefined ? $json.body.parameters.isBillable : true }},\n    \"clientId\": \"{{ $json.body.parameters.clientId }}\",\n    \"projectId\": \"{{ $json.body.parameters.projectId }}\"\n  },\n  \"userId\": \"{{ $json.body.userId }}\"\n}",
+        "options": {}
+      },
+      "id": "add-kilometer",
+      "name": "Add Kilometer Entry",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 400],
+      "notes": "Adds a kilometer entry for kilometerregistratie"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZZPCHAT_API_URL }}/api/webhooks/n8n",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.N8N_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"create_contact\",\n  \"parameters\": {\n    \"name\": \"{{ $json.body.parameters.name }}\",\n    \"email\": \"{{ $json.body.parameters.email }}\",\n    \"phone\": \"{{ $json.body.parameters.phone }}\",\n    \"company\": \"{{ $json.body.parameters.company }}\",\n    \"position\": \"{{ $json.body.parameters.position }}\",\n    \"notes\": \"{{ $json.body.parameters.notes }}\",\n    \"tags\": {{ $json.body.parameters.tags || [] }}\n  },\n  \"userId\": \"{{ $json.body.userId }}\"\n}",
+        "options": {}
+      },
+      "id": "create-contact",
+      "name": "Create Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 500],
+      "notes": "Creates a new contact/client"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZZPCHAT_API_URL }}/api/webhooks/n8n",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.N8N_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"search_contacts\",\n  \"parameters\": {\n    \"search\": \"{{ $json.body.parameters.search }}\",\n    \"tag\": \"{{ $json.body.parameters.tag }}\"\n  },\n  \"userId\": \"{{ $json.body.userId }}\"\n}",
+        "options": {}
+      },
+      "id": "search-contacts",
+      "name": "Search Contacts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 600],
+      "notes": "Searches for contacts by name, email, company, or phone"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZZPCHAT_API_URL }}/api/webhooks/n8n",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.N8N_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"get_invoices\",\n  \"parameters\": {\n    \"status\": \"{{ $json.body.parameters.status }}\",\n    \"clientId\": \"{{ $json.body.parameters.clientId }}\",\n    \"page\": {{ $json.body.parameters.page || 1 }},\n    \"limit\": {{ $json.body.parameters.limit || 10 }}\n  },\n  \"userId\": \"{{ $json.body.userId }}\"\n}",
+        "options": {}
+      },
+      "id": "get-invoices",
+      "name": "Get Invoices",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 700],
+      "notes": "Retrieves invoices with optional filtering"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZZPCHAT_API_URL }}/api/webhooks/n8n",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.N8N_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"get_quotes\",\n  \"parameters\": {\n    \"status\": \"{{ $json.body.parameters.status }}\",\n    \"clientId\": \"{{ $json.body.parameters.clientId }}\",\n    \"page\": {{ $json.body.parameters.page || 1 }},\n    \"limit\": {{ $json.body.parameters.limit || 10 }}\n  },\n  \"userId\": \"{{ $json.body.userId }}\"\n}",
+        "options": {}
+      },
+      "id": "get-quotes",
+      "name": "Get Quotes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 800],
+      "notes": "Retrieves quotes/offertes with optional filtering"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZZPCHAT_API_URL }}/api/webhooks/n8n",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.N8N_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"ai_intent\",\n  \"parameters\": {\n    \"message\": \"{{ $json.body.parameters.message }}\",\n    \"conversationHistory\": {{ $json.body.parameters.conversationHistory || [] }}\n  },\n  \"userId\": \"{{ $json.body.userId }}\"\n}",
+        "options": {}
+      },
+      "id": "ai-intent",
+      "name": "AI Intent Detection",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 900],
+      "notes": "Analyzes user message for intent and generates AI response"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZZPCHAT_API_URL }}/api/webhooks/n8n",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.N8N_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"context_search\",\n  \"parameters\": {\n    \"query\": \"{{ $json.body.parameters.query || $json.body.parameters.search }}\"\n  },\n  \"userId\": \"{{ $json.body.userId }}\"\n}",
+        "options": {}
+      },
+      "id": "context-search",
+      "name": "Context Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 1000],
+      "notes": "Searches across clients, invoices, quotes, and time entries"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-success",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        }
+      },
+      "id": "check-response",
+      "name": "Check Response",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "format-response",
+              "name": "response",
+              "value": "={\n  \"success\": {{ $json.success }},\n  \"data\": {{ $json.data }},\n  \"message\": \"{{ $json.message }}\",\n  \"error\": \"{{ $json.error }}\",\n  \"context\": {{ $json.context }}\n}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "format-success",
+      "name": "Format Success Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "format-error",
+              "name": "response",
+              "value": "={\n  \"success\": false,\n  \"error\": \"{{ $json.error || 'Unknown error' }}\",\n  \"message\": \"{{ $json.message }}\",\n  \"context\": {{ $json.context }}\n}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "format-error",
+      "name": "Format Error Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1120, 400]
+    },
+    {
+      "parameters": {},
+      "id": "respond-to-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Route Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Action": {
+      "main": [
+        [
+          {
+            "node": "Create Invoice",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Quote",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add Time Entry",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add Kilometer Entry",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Contact",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search Contacts",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Invoices",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Quotes",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Intent Detection",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Context Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Invoice": {
+      "main": [
+        [
+          {
+            "node": "Check Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Quote": {
+      "main": [
+        [
+          {
+            "node": "Check Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Time Entry": {
+      "main": [
+        [
+          {
+            "node": "Check Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Kilometer Entry": {
+      "main": [
+        [
+          {
+            "node": "Check Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Contact": {
+      "main": [
+        [
+          {
+            "node": "Check Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Contacts": {
+      "main": [
+        [
+          {
+            "node": "Check Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Invoices": {
+      "main": [
+        [
+          {
+            "node": "Check Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Quotes": {
+      "main": [
+        [
+          {
+            "node": "Check Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Intent Detection": {
+      "main": [
+        [
+          {
+            "node": "Check Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Context Search": {
+      "main": [
+        [
+          {
+            "node": "Check Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Response": {
+      "main": [
+        [
+          {
+            "node": "Format Success Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Format Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Success Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Error Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2025-01-01T00:00:00.000Z",
+      "updatedAt": "2025-01-01T00:00:00.000Z",
+      "id": "zzpchat",
+      "name": "ZzpChat"
+    },
+    {
+      "createdAt": "2025-01-01T00:00:00.000Z",
+      "updatedAt": "2025-01-01T00:00:00.000Z",
+      "id": "ai-assistant",
+      "name": "AI Assistant"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-01T00:00:00.000Z",
+  "versionId": "1"
+}
+
