@@ -1415,8 +1415,12 @@ async function executeCreateKilometerEntry(userId: string, args: any): Promise<T
     const kilometerEntry = await prisma.kilometerEntry.create({
       data: {
         date: new Date(args.date),
-        kilometers: args.kilometers,
+        fromLocation: args.fromLocation || args.from || 'Unknown',
+        toLocation: args.toLocation || args.to || 'Unknown',
+        distanceKm: args.distanceKm || args.kilometers || 0,
         purpose: args.purpose || null,
+        type: args.type || 'zakelijk',
+        isBillable: args.isBillable !== undefined ? args.isBillable : true,
         clientId: args.clientId || null,
         projectId: args.projectId || null,
         userId,
@@ -1435,7 +1439,7 @@ async function executeCreateKilometerEntry(userId: string, args: any): Promise<T
     return {
       success: true,
       data: kilometerEntry,
-      message: `Kilometer entry created: ${args.kilometers} km on ${args.date}`,
+      message: `Kilometer entry created: ${args.distanceKm || args.kilometers || 0} km on ${args.date}`,
     }
   } catch (error: any) {
     return {

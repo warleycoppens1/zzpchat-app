@@ -53,15 +53,17 @@ export abstract class BaseIntegration {
       const decryptedCredentials = decrypt(integration.credentials)
       this.credentials = JSON.parse(decryptedCredentials)
       
-      if (integration.refreshToken) {
+      if (this.credentials && integration.refreshToken) {
         this.credentials.refreshToken = decrypt(integration.refreshToken)
       }
       
-      if (integration.expiresAt) {
+      if (this.credentials && integration.expiresAt) {
         this.credentials.expiresAt = integration.expiresAt
       }
 
-      this.credentials.scope = integration.scope || []
+      if (this.credentials) {
+        this.credentials.scope = integration.scope || []
+      }
       this.settings = (integration.settings as Record<string, any>) || {}
     } catch (error) {
       throw new Error(`Failed to decrypt credentials: ${error}`)
@@ -184,7 +186,6 @@ export abstract class BaseIntegration {
         status: 'DISCONNECTED',
         credentials: '',
         refreshToken: null,
-        disconnectedAt: new Date()
       }
     })
 

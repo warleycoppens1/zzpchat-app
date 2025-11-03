@@ -38,6 +38,7 @@ interface InvoiceData {
   shipping: number
   total: number
   notes: string
+  description?: string
   logo?: string
   currency: string
 }

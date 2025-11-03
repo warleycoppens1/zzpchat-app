@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 
 const algorithm = 'aes-256-gcm'
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!
 
 if (!ENCRYPTION_KEY) {
   throw new Error('ENCRYPTION_KEY environment variable is required')

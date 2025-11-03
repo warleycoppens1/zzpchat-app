@@ -145,7 +145,7 @@ export class BrowserController {
           await this.page.click(action.selector)
           
           // Wait a bit for any resulting navigation or DOM changes
-          await this.page.waitForTimeout(1000)
+          await new Promise(resolve => setTimeout(resolve, 1000))
           
           result.data = { message: `Clicked element: ${action.selector}` }
           result.url = this.page.url()
@@ -169,7 +169,7 @@ export class BrowserController {
             fullPage: action.options?.includes('fullPage') || false,
           })
           
-          result.screenshot = `data:image/png;base64,${screenshot.toString('base64')}`
+          result.screenshot = `data:image/png;base64,${Buffer.from(screenshot as any).toString('base64')}`
           result.data = { message: 'Screenshot captured' }
           break
 
@@ -194,7 +194,7 @@ export class BrowserController {
           break
 
         case 'wait':
-          await this.page.waitForTimeout(action.timeout || 2000)
+          await new Promise(resolve => setTimeout(resolve, action.timeout || 2000))
           result.data = { message: 'Waited' }
           break
 
@@ -219,7 +219,7 @@ export class BrowserController {
             throw new Error(`File input not found: ${action.selector}`)
           }
           
-          await fileInput.uploadFile(action.filePath)
+          await (fileInput as any).uploadFile(action.filePath)
           result.data = { message: `Uploaded file: ${action.filePath}` }
           break
 

@@ -101,8 +101,8 @@ export function createAuthOptions(): NextAuthOptions {
               await prisma.user.create({
                 data: {
                   email: user.email,
-                  name: user.name || profile?.name || 'Google User',
-                  image: user.image || profile?.picture,
+                  name: user.name || (profile as any)?.name || 'Google User',
+                  image: user.image || (profile as any)?.picture,
                   emailVerified: new Date(),
                 }
               })
@@ -111,8 +111,8 @@ export function createAuthOptions(): NextAuthOptions {
               await prisma.user.update({
                 where: { email: user.email },
                 data: {
-                  name: existingUser.name || user.name || profile?.name,
-                  image: existingUser.image || user.image || profile?.picture,
+                  name: existingUser.name || user.name || (profile as any)?.name,
+                  image: existingUser.image || user.image || (profile as any)?.picture,
                   emailVerified: existingUser.emailVerified || new Date(),
                 }
               })

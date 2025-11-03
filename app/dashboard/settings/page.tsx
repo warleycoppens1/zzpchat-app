@@ -168,14 +168,8 @@ export default function SettingsPage() {
           })
           
           if (response.ok) {
-            // Update session data
-            const { update } = await import('next-auth/react')
-            await update({
-              user: {
-                ...session.user,
-                image: imageDataUrl
-              }
-            })
+            // Session will update on next refresh
+            window.location.reload()
           }
         } catch (error) {
           console.error('Error updating profile image:', error)
