@@ -1,10 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { DarkModeToggle } from '../components/dark-mode-toggle'
-import { QRCode } from '../components/qr-code'
 import { InteractiveGridPattern } from '../components/ui/interactive-grid-pattern'
-import { cn } from '../lib/utils'
+import { 
+  Zap, FileText, Timer, MessageSquare, Bot, Sparkles, BarChart,
+  Star, ArrowRight, Check, Phone, Users, Mail, Calendar, TrendingUp, Globe
+} from 'lucide-react'
 
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -17,16 +20,23 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-200">
       {/* Floating Navigation */}
       <nav className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ${
         isScrolled 
-          ? 'bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg px-6 py-3' 
+          ? 'bg-white/80 dark:bg-black/80 dark:border-purple-900/30 backdrop-blur-md border border-gray-200 dark:border-slate-800/50 rounded-2xl shadow-lg dark:shadow-purple-900/20 px-6 py-3' 
           : 'bg-transparent px-6 py-4'
       }`}>
         <div className="flex items-center w-full max-w-4xl">
-          <div className="flex items-center flex-shrink-0">
+          <button 
+            onClick={scrollToTop}
+            className="flex items-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+          >
             <div className="relative w-8 h-8">
               {/* Outer circle with gradient */}
               <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full"></div>
@@ -44,13 +54,13 @@ export default function Home() {
               </div>
             </div>
             <h1 className={`ml-3 text-xl font-bold transition-colors duration-300 ${
-              isScrolled ? 'text-gray-900 dark:text-white' : 'text-white'
+              isScrolled ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'
             }`}>ZzpChat</h1>
-          </div>
+          </button>
           
           <div className="hidden md:flex items-center space-x-8 ml-12">
             <a href="/pricing" className={`font-medium transition-colors duration-300 hover:opacity-80 ${
-              isScrolled ? 'text-gray-600 dark:text-gray-300' : 'text-white'
+              isScrolled ? 'text-gray-600 dark:text-gray-300' : 'text-gray-700 dark:text-white'
             }`}>
               Prijzen
             </a>
@@ -58,7 +68,7 @@ export default function Home() {
             <a href="/login" className={`px-6 py-2 rounded-xl font-semibold transition-all duration-300 ${
               isScrolled 
                 ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
-                : 'bg-white text-indigo-600 hover:bg-gray-50'
+                : 'bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-white dark:text-indigo-600 dark:hover:bg-gray-50'
             }`}>
               Inloggen
             </a>
@@ -67,616 +77,811 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Gradient - Verbeterd */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-white via-indigo-50/30 to-indigo-50/20 dark:from-black dark:via-slate-950 dark:to-black">
+        {/* Dark mode background with glow effects */}
+        <div className="absolute inset-0 hidden dark:block">
+          {/* Deep black background */}
+          <div className="absolute inset-0 bg-black"></div>
+          
+          {/* Purple glow gradients for lighting effects */}
+          <div className="absolute top-0 left-0 w-full h-full">
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-900/30 rounded-full blur-[120px]"></div>
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-900/30 rounded-full blur-[120px]"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-950/20 rounded-full blur-[140px]"></div>
+          </div>
+          
+          {/* Interactive Grid Pattern */}
+          <InteractiveGridPattern
+            className="opacity-40"
+            squares={[20, 20]}
+            width={60}
+            height={60}
+            squaresClassName="stroke-purple-900/30 hover:stroke-purple-700/60 hover:fill-purple-900/20 transition-all duration-300"
+          />
+        </div>
         
-        {/* Interactive Grid Pattern */}
-        <InteractiveGridPattern
-          className={cn(
-            "absolute inset-0 h-full w-full",
-            "[mask-image:radial-gradient(600px_circle_at_center,white,transparent)]",
-            "opacity-40"
-          )}
-          squares={[35, 35]}
-          width={35}
-          height={35}
-        />
-        
-        {/* Floating Elements - Subtieler */}
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/3 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+        {/* Light mode with interactive grid and soft gradient */}
+        <div className="absolute inset-0 dark:hidden">
+          {/* Soft gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/40 via-purple-50/30 to-indigo-50/40"></div>
+          
+          {/* Interactive Grid Pattern for light mode */}
+          <InteractiveGridPattern
+            className="opacity-30"
+            squares={[20, 20]}
+            width={60}
+            height={60}
+            squaresClassName="stroke-indigo-200/40 hover:stroke-indigo-300/60 hover:fill-indigo-100/30 transition-all duration-300"
+          />
+          
+          {/* Subtle floating gradients */}
+          <div className="absolute top-20 left-10 w-96 h-96 bg-indigo-100/20 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-purple-100/20 rounded-full blur-3xl"></div>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Main Content */}
-            <div className="lg:col-span-8 text-center lg:text-left">
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-8 leading-tight">
-                Revolutioneer Je Bedrijf
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center lg:text-left"
+            >
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+                Je slimme AI-assistent voor
                 <br />
-                <span className="bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent">
-                  Met Slimme Tools
+                <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-400 dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-300 bg-clip-text text-transparent">
+                  facturen, offertes en uren
                 </span>
               </h1>
               
-              <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed">
-                Ontdek hoe onze alles-in-één platform je helpt met AI-assistentie, 
-                facturatie, offertes en meer – allemaal op één plek.
-              </p>
-
-              <p className="text-lg text-white/80 mb-12 leading-relaxed">
-                Welkom bij ZzpChat, waar innovatie en efficiëntie samenkomen. Bespaar tijd en groei je business 
-                met geavanceerde functies zoals AI-gedreven inzichten, naadloze WhatsApp-integratie en automatische urenregistratie.
+              <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+                Beheer je administratie direct via WhatsApp — facturen maken, offertes versturen, uren registreren. Alles in één gesprek.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
-                <a
+                <motion.a
                   href="/login"
-                  className="bg-white text-indigo-600 px-8 py-4 rounded-2xl text-lg font-semibold hover:bg-gray-50 transition-all transform hover:scale-105 shadow-xl"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-4 rounded-2xl text-lg font-semibold hover:shadow-xl hover:shadow-indigo-500/50 dark:hover:shadow-indigo-500/30 transition-all shadow-lg dark:shadow-indigo-900/20"
                 >
-                  Probeer Gratis Uit – Geen Creditcard Nodig!
-                </a>
+                  Probeer gratis
+                </motion.a>
+                <motion.a
+                  href="#features"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 px-8 py-4 rounded-2xl text-lg font-semibold border-2 border-indigo-600 dark:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-slate-800 transition-all"
+                >
+                  Bekijk demo
+                </motion.a>
               </div>
 
               {/* Trust Indicators */}
-              <div className="flex items-center justify-center lg:justify-start space-x-8 text-white/70">
+              <div className="flex items-center justify-center lg:justify-start space-x-8 text-gray-600 dark:text-gray-400">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-white">10k+</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">10k+</div>
                   <div className="text-sm">ZZP'ers wereldwijd</div>
                 </div>
-                <div className="w-px h-8 bg-white/30"></div>
+                <div className="w-px h-8 bg-gray-300 dark:bg-slate-700"></div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-white">99.9%</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">99.9%</div>
                   <div className="text-sm">Uptime</div>
                 </div>
-                <div className="w-px h-8 bg-white/30"></div>
+                <div className="w-px h-8 bg-gray-300 dark:bg-slate-700"></div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-white">90%</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">90%</div>
                   <div className="text-sm">Tijd besparen</div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            {/* QR Code Section */}
-            <div className="lg:col-span-4 flex flex-col items-center justify-center">
-              <div className="relative">
-                <QRCode 
-                  size="lg" 
-                  variant="hero" 
-                  className="transform hover:scale-105 transition-transform duration-300 hidden sm:block" 
-                />
-                <QRCode 
-                  size="md" 
-                  variant="hero" 
-                  className="transform hover:scale-105 transition-transform duration-300 sm:hidden" 
-                />
-                
-                {/* Scan me indicator */}
-                <div className="absolute -right-16 top-1/2 transform -translate-y-1/2 hidden xl:block">
-                  <div className="flex items-center">
-                    <svg 
-                      className="w-12 h-8 text-white/60 mr-2" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                      style={{ transform: 'scaleX(-1)' }}
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M17 8l4 4m0 0l-4 4m4-4H3" 
-                      />
-                    </svg>
-                    <span className="text-white/70 font-handwriting text-lg">
-                      scan me
-                    </span>
+            {/* Phone Mockup */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              whileHover={{ y: -10 }}
+              className="flex justify-center"
+            >
+              <div className="relative w-64 h-[500px]">
+                {/* Phone frame */}
+                <div className="absolute inset-0 bg-gray-900 rounded-[3rem] p-2 shadow-2xl">
+                  <div className="w-full h-full bg-white rounded-[2.5rem] overflow-hidden">
+                    {/* Phone header notch */}
+                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-2xl z-10"></div>
+                    
+                    {/* WhatsApp chat interface */}
+                    <div className="pt-8 px-4 h-full flex flex-col bg-gray-50">
+                      {/* Chat header */}
+                      <div className="flex items-center mb-4 pb-3 border-b border-gray-200">
+                        <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
+                          <MessageSquare className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="ml-3">
+                          <div className="font-semibold text-gray-900">ZzpChat AI</div>
+                          <div className="text-xs text-green-600 flex items-center">
+                            <div className="w-2 h-2 bg-green-600 rounded-full mr-1"></div>
+                            Online
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Messages */}
+                      <div className="flex-1 space-y-3">
+                        <div className="flex justify-start">
+                          <div className="bg-white rounded-2xl rounded-bl-md px-4 py-2 max-w-[80%] shadow-sm">
+                            <p className="text-sm text-gray-900">Maak een factuur van €850 voor Jan Jansen</p>
+                          </div>
+                        </div>
+                        <div className="flex justify-end">
+                          <div className="bg-indigo-600 rounded-2xl rounded-br-md px-4 py-2 max-w-[80%]">
+                            <p className="text-sm text-white">✅ Factuur aangemaakt!</p>
+                            <p className="text-xs text-indigo-100 mt-1">Versturen naar Jan?</p>
+                          </div>
+                        </div>
+                        <div className="flex justify-start">
+                          <div className="bg-white rounded-2xl rounded-bl-md px-4 py-2 max-w-[80%] shadow-sm">
+                            <p className="text-sm text-gray-900">Ja, verstuur maar</p>
+                          </div>
+                        </div>
+                        <div className="flex justify-end">
+                          <div className="bg-green-500 rounded-2xl rounded-br-md px-4 py-2 max-w-[80%]">
+                            <p className="text-sm text-white">✅ Verstuurd via WhatsApp!</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
 
         {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-          <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
-            <div className="w-1 h-3 bg-white/50 rounded-full mt-2 animate-bounce"></div>
-          </div>
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="w-6 h-10 border-2 border-indigo-600 dark:border-purple-500 rounded-full flex justify-center"
+          >
+            <div className="w-1 h-3 bg-indigo-600 dark:bg-purple-400 rounded-full mt-2"></div>
+          </motion.div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-24 bg-gray-50 dark:bg-gray-800 transition-colors duration-200">
+      {/* Why ZzpChat - Feature Highlights */}
+      <section id="features" className="py-24 bg-gradient-to-b from-indigo-50/20 via-white to-white dark:from-slate-950 dark:via-black dark:to-slate-950 transition-colors duration-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-20"
+          >
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Start Vandaag Nog En Ervaar Het Verschil!
+              Waarom ZzpChat?
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Met onze moderne AI-technologie en naadloze WhatsApp-integratie, 
-              hebben we een platform gemaakt dat aanvoelt als magie en schaalt zo snel als je bedrijf groeit.
+              Een AI-assistent die écht begrijpt hoe ZZP'ers werken
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-                AI-Assistentie In Een Oogwenk
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Feature 1 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              whileHover={{ y: -8, scale: 1.02 }}
+              className="bg-white dark:bg-slate-900/50 dark:backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-slate-800 transition-all duration-300"
+            >
+              <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-2xl flex items-center justify-center mb-6">
+                <Zap className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                Slimmer werken, niet harder
               </h3>
-              <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-                Start een productie-klare AI-assistent via WhatsApp in seconden. Krijg altijd-aan prestaties, 
-                zelfs tijdens piekmomenten.
+              <p className="text-gray-600 dark:text-gray-300">
+                Automatiseer repetitieve taken en focus op waar je écht goed in bent. Laat de AI de administratie afhandelen.
               </p>
-              <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-                Bliksemsnel vanaf de eerste bericht, helemaal tot duizenden per dag—automatisering gedaan goed.
-              </p>
-              
-              <div className="bg-gray-900 rounded-2xl p-6 font-mono text-sm text-green-400">
-                <div className="flex items-center mb-4">
-                  <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                </div>
-                <code>
-                  <span className="text-blue-400">WhatsApp:</span> <span className="text-green-400">"Maak factuur van €500 voor Jan Jansen"</span>
-                  <br />
-                  <br />
-                  <span className="text-purple-400">ZzpChat AI:</span> <span className="text-green-400">"Factuur aangemaakt! Verstuur ik deze naar Jan?"</span>
-                  <br />
-                  <br />
-                  <span className="text-blue-400">WhatsApp:</span> <span className="text-green-400">"Ja, verstuur maar"</span>
-                  <br />
-                  <br />
-                  <span className="text-purple-400">ZzpChat AI:</span> <span className="text-green-400">"✅ Factuur verstuurd via WhatsApp!"</span>
-                </code>
-              </div>
-            </div>
+            </motion.div>
 
-            <div className="grid grid-cols-2 gap-6">
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg transition-colors duration-200">
-                <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                </div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">WhatsApp AI</h4>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">Intelligente berichten via WhatsApp</p>
+            {/* Feature 2 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              whileHover={{ y: -8, scale: 1.02 }}
+              className="bg-white dark:bg-slate-900/50 dark:backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-slate-800 transition-all duration-300"
+            >
+              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/50 rounded-2xl flex items-center justify-center mb-6">
+                <FileText className="w-8 h-8 text-purple-600 dark:text-purple-400" />
               </div>
-
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg transition-colors duration-200">
-                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-xl flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Automatische Facturen</h4>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">Van bericht naar factuur in seconden</p>
-              </div>
-
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg transition-colors duration-200">
-                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-xl flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Urenregistratie</h4>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">Automatische tijd tracking</p>
-              </div>
-
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg transition-colors duration-200">
-                <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/50 rounded-xl flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Slimme Offertes</h4>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">AI-gestuurde offerte generatie</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Smart Features Section */}
-      <section className="py-24 bg-white dark:bg-gray-900 transition-colors duration-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-                Herdefinieer hoe je administratie werkt
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                Facturen & offertes in minuten
               </h3>
-              <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-                Voeg slimme automatiseringsregels toe met één WhatsApp bericht om je workflow 
-                te versnellen met ons wereldwijde AI netwerk.
+              <p className="text-gray-600 dark:text-gray-300">
+                Van WhatsApp bericht naar professionele factuur in seconden. Geen complexe software nodig.
               </p>
-              <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-                AI-powered microservices, draaiend op moderne servers, maximaliseren je productiviteit.
-              </p>
-            </div>
+            </motion.div>
 
-            <div className="bg-gray-900 rounded-2xl p-6 font-mono text-sm text-green-400">
-              <div className="flex items-center mb-4">
-                <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            {/* Feature 3 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              whileHover={{ y: -8, scale: 1.02 }}
+              className="bg-white dark:bg-slate-900/50 dark:backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-slate-800 transition-all duration-300"
+            >
+              <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-2xl flex items-center justify-center mb-6">
+                <Timer className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
               </div>
-              <code>
-                <span className="text-blue-400">WhatsApp:</span> <span className="text-green-400">"Toon mijn facturen van deze maand"</span>
-                <br />
-                <br />
-                <span className="text-purple-400">ZzpChat AI:</span> <span className="text-green-400">"📊 Facturen December 2024:"</span>
-                <br />
-                <span className="text-gray-400">• Factuur #2024-001 - €1.250 (Betaald)</span>
-                <br />
-                <span className="text-gray-400">• Factuur #2024-002 - €850 (Open)</span>
-                <br />
-                <span className="text-gray-400">• Factuur #2024-003 - €2.100 (Betaald)</span>
-                <br />
-                <br />
-                <span className="text-yellow-400">💰 Totaal: €4.200 (€3.350 betaald, €850 open)</span>
-              </code>
-            </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                Uren en klantenbeheer zonder rompslomp
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                Registreer uren terwijl je praat, beheer klanten en volg alles automatisch bij.
+              </p>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Dashboard Section */}
-      <section className="py-24 bg-gray-900 text-white">
+      {/* How It Works - 4-Step Visual Flow */}
+      <section className="py-24 bg-gradient-to-b from-white via-indigo-50/10 to-indigo-50/20 dark:from-black dark:via-slate-950 dark:to-black transition-colors duration-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-6">
-              Een collaboratieve dashboard ervaring voor je bedrijf
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Krijg AI powered aanbevelingen om je workflow te optimaliseren, of verken en beheer 
-              je administratie met onze ingebouwde visuele interface. Gebouwd om je hele team samen te laten werken.
-            </p>
-          </div>
-
-          <div className="bg-gray-800 rounded-3xl p-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="bg-gray-700 rounded-2xl p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-                  <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                  <span className="text-sm text-gray-300">dashboard.tsx</span>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div className="text-blue-400">import</div>
-                  <div className="text-blue-400">const</div>
-                  <div className="text-yellow-400">Dashboard</div>
-                  <div className="text-blue-400">=</div>
-                  <div className="text-purple-400">()</div>
-                </div>
-              </div>
-
-              <div className="bg-gray-700 rounded-2xl p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-                  <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                  <span className="text-sm text-gray-300">invoices.json</span>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div className="text-green-400">{"{"}</div>
-                  <div className="text-blue-400">&nbsp;&nbsp;"id": "001"</div>
-                  <div className="text-blue-400">&nbsp;&nbsp;"amount": 1250</div>
-                  <div className="text-blue-400">&nbsp;&nbsp;"status": "paid"</div>
-                </div>
-              </div>
-
-              <div className="bg-gray-700 rounded-2xl p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-                  <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                  <span className="text-sm text-gray-300">whatsapp.ai</span>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div className="text-blue-400">AI_ASSISTANT</div>
-                  <div className="text-blue-400">PROCESS_MESSAGE</div>
-                  <div className="text-yellow-400">"create invoice"</div>
-                  <div className="text-blue-400">RESPONSE</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Powerful Features Section */}
-      <section className="py-24 bg-white dark:bg-gray-900 transition-colors duration-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-20"
+          >
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Krachtige Features In Één Simpele Weergave
+              Hoe het werkt
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Alles wat je nodig hebt voor efficiënte administratie, overzichtelijk gepresenteerd
+              Simpel, snel en effectief. In 4 stappen op weg
             </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {[
+              { step: 1, icon: MessageSquare, title: 'Verbind je WhatsApp', desc: 'Koppel je WhatsApp in één klik' },
+              { step: 2, icon: Bot, title: 'Praat met de AI', desc: 'Start een natuurlijk gesprek' },
+              { step: 3, icon: Sparkles, title: 'ZzpChat doet de rest', desc: 'Automatische verwerking en uitvoering' },
+              { step: 4, icon: BarChart, title: 'Bekijk je dashboard', desc: 'Overzicht van alle acties' }
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="text-center"
+              >
+                <div className="relative mb-6">
+                  <div className="w-20 h-20 mx-auto bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                    <item.icon className="w-10 h-10 text-white" />
+                  </div>
+                  {index < 3 && (
+                    <div className="hidden md:block absolute top-10 left-full w-full h-0.5 bg-gradient-to-r from-indigo-600 to-purple-600 transform translate-y-[-50%]">
+                      <div className="absolute right-0 top-[-6px] w-3 h-3 bg-purple-600 rounded-full"></div>
+                    </div>
+                  )}
+                </div>
+                <div className="w-12 h-12 mx-auto bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mb-4">
+                  <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{item.step}</span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{item.title}</h3>
+                <p className="text-gray-600 dark:text-gray-300">{item.desc}</p>
+              </motion.div>
+            ))}
           </div>
 
-          <div className="relative">
-            {/* Central Circle */}
-            <div className="flex justify-center mb-16">
-              <div className="relative w-64 h-64 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center">
-                <div className="w-48 h-48 bg-white rounded-full flex items-center justify-center">
-                  <div className="w-32 h-32 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center">
-                    <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Feature Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl flex items-center justify-center mr-4">
-                    <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">Automatische Facturatie</h3>
-                </div>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Van WhatsApp bericht naar professionele factuur in seconden. 
-                  AI verwerkt je verzoeken en maakt automatisch facturen aan.
-                </p>
-              </div>
-
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-xl flex items-center justify-center mr-4">
-                    <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">Geïntegreerde Agenda</h3>
-                </div>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Synchroniseer je agenda en ontvang automatische herinneringen. 
-                  Plan afspraken en volg je tijd efficiënt.
-                </p>
-              </div>
-
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-xl flex items-center justify-center mr-4">
-                    <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">Eenvoudige Samenwerking</h3>
-                </div>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Werk samen met je team via WhatsApp. Deel updates, 
-                  stel vragen en krijg direct antwoorden van je AI-assistent.
-                </p>
-              </div>
-
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/50 rounded-xl flex items-center justify-center mr-4">
-                    <svg className="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">Live Rapportage</h3>
-                </div>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Bekijk real-time inzichten over je bedrijf. Omzet, 
-                  openstaande facturen en productiviteit in één overzicht.
-                </p>
-              </div>
-            </div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="text-center mt-12"
+          >
+            <motion.a
+              href="#demo"
+              whileHover={{ scale: 1.05 }}
+              className="inline-flex items-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-4 rounded-2xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+            >
+              Bekijk demo
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </motion.a>
+          </motion.div>
         </div>
       </section>
 
-      {/* Team Section */}
-      <section className="py-24 bg-gray-50 dark:bg-gray-800 transition-colors duration-200">
+      {/* Key Features - Storytelling with alternating layout */}
+      <section className="py-24 bg-gradient-to-b from-indigo-50/20 via-white to-white dark:from-slate-950 dark:via-black dark:to-slate-950 transition-colors duration-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-                Alles Wat Je Team Nodig Heeft
-              </h2>
-              <div className="mb-8">
-                <div className="text-6xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">90%</div>
-                <p className="text-lg text-gray-600 dark:text-gray-300">Tijd besparen voor je team</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-6">
-              <div className="bg-indigo-600 rounded-2xl p-6 text-white">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                  </svg>
-                </div>
-                <h3 className="font-bold text-white mb-2">Schoon Dashboard</h3>
-                <p className="text-white/80 text-sm">Overzichtelijke interface zonder afleiding</p>
-              </div>
-
-              <div className="bg-indigo-600 rounded-2xl p-6 text-white">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <h3 className="font-bold text-white mb-2">Snelle Setup</h3>
-                <p className="text-white/80 text-sm">In 5 minuten aan de slag</p>
-              </div>
-
-              <div className="bg-indigo-600 rounded-2xl p-6 text-white">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
-                </div>
-                <h3 className="font-bold text-white mb-2">Schaalt Met Je</h3>
-                <p className="text-white/80 text-sm">Groeit mee met je bedrijf</p>
-              </div>
-
-              <div className="bg-indigo-600 rounded-2xl p-6 text-white">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="font-bold text-white mb-2">Tijd Synchronisatie</h3>
-                <p className="text-white/80 text-sm">Alles perfect op tijd</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Before/After Section */}
-      <section className="py-24 bg-white dark:bg-gray-900 transition-colors duration-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-20"
+          >
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Voordat Je Ons Platform Gebruikt
+              Krachtige features voor slimme ZZP'ers
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Herken je deze problemen? ZzpChat lost ze allemaal op
+              Alles wat je nodig hebt in één platform
             </p>
-          </div>
+          </motion.div>
 
-          <div className="relative">
-            {/* Central Phone */}
-            <div className="flex justify-center mb-16">
-              <div className="relative">
-                <div className="w-48 h-96 bg-gray-900 rounded-3xl p-2">
-                  <div className="w-full h-full bg-gray-100 rounded-2xl flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="w-20 h-20 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
+          {/* Feature 1: AI Chat */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-24"
+          >
+            <div className="order-2 lg:order-1">
+              <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-2xl flex items-center justify-center mb-6">
+                <MessageSquare className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">AI Chat Integration</h3>
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                Chat met je AI-assistent via WhatsApp zoals je zou praten met een collega. Geen ingewikkelde commands of menus.
+              </p>
+              <ul className="space-y-3">
+                {['Natuurlijke gesprekken', 'Contextueel begrip', '24/7 beschikbaarheid'].map((item, i) => (
+                  <li key={i} className="flex items-center text-gray-700 dark:text-gray-300">
+                    <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="order-1 lg:order-2 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-purple-950/30 dark:to-indigo-950/30 rounded-3xl p-8 flex items-center justify-center">
+              <div className="w-full max-w-sm">
+                <div className="bg-white dark:bg-slate-900/50 dark:backdrop-blur-sm rounded-2xl shadow-xl p-6">
+                  <div className="flex items-center mb-4 pb-4 border-b border-gray-200">
+                    <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
+                      <MessageSquare className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="ml-3">
+                      <div className="font-semibold text-gray-900 dark:text-white">ZzpChat AI</div>
+                      <div className="text-xs text-green-600 flex items-center">
+                        <div className="w-2 h-2 bg-green-600 rounded-full mr-1"></div>
+                        Online
                       </div>
-                      <p className="text-gray-600 text-sm">ZzpChat</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg px-4 py-2">
+                      <p className="text-sm text-gray-900 dark:text-white">Maak offerte €2000 voor MarketingExpert</p>
+                    </div>
+                    <div className="bg-indigo-600 rounded-lg px-4 py-2">
+                      <p className="text-sm text-white">✅ Offerte #2025-001 aangemaakt!</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+          </motion.div>
 
-            {/* Problem Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-indigo-600 rounded-2xl p-6 text-white">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
+          {/* Feature 2: Facturen & Offertes */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-24"
+          >
+            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 rounded-3xl p-8 flex items-center justify-center">
+              <div className="w-full max-w-sm bg-white dark:bg-slate-900/50 dark:backdrop-blur-sm rounded-2xl shadow-xl p-6">
+                <div className="flex items-center justify-between mb-6 pb-4 border-b">
+                  <div>
+                    <h4 className="font-bold text-gray-900 dark:text-white">Factuur #2025-042</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">15 Jan 2025</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">€1.850</div>
+                    <div className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">Betaald</div>
+                  </div>
                 </div>
-                <h3 className="font-bold text-white mb-2">Te Veel Tools</h3>
-                <p className="text-white/80 text-sm">Verschillende apps voor verschillende taken</p>
-              </div>
-
-              <div className="bg-indigo-600 rounded-2xl p-6 text-white">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Web development</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">€1.500</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Consultancy</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">€350</span>
+                  </div>
                 </div>
-                <h3 className="font-bold text-white mb-2">Te Veel Tabbladen</h3>
-                <p className="text-white/80 text-sm">Verlies je overzicht in de chaos</p>
-              </div>
-
-              <div className="bg-indigo-600 rounded-2xl p-6 text-white">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </div>
-                <h3 className="font-bold text-white mb-2">Gebrek Aan Overzicht</h3>
-                <p className="text-white/80 text-sm">Weet niet waar je staat met je business</p>
-              </div>
-
-              <div className="bg-indigo-600 rounded-2xl p-6 text-white">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <h3 className="font-bold text-white mb-2">Overinformatie</h3>
-                <p className="text-white/80 text-sm">Verdrink in te veel data en documenten</p>
               </div>
             </div>
+            <div>
+              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/50 rounded-2xl flex items-center justify-center mb-6">
+                <FileText className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Facturen & Offertes</h3>
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                Professionele facturen en offertes gegenereerd in seconden, verstuurd via WhatsApp of email.
+              </p>
+              <ul className="space-y-3">
+                {['Automatische nummering', 'Mollie integratie', 'PDF export'].map((item, i) => (
+                  <li key={i} className="flex items-center text-gray-700 dark:text-gray-300">
+                    <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </motion.div>
+
+          {/* Feature 3: Urenregistratie */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-24"
+          >
+            <div>
+              <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-2xl flex items-center justify-center mb-6">
+                <Timer className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Urenregistratie</h3>
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                Registreer uren via voice of text. AI linkt automatisch aan projecten en klanten.
+              </p>
+              <ul className="space-y-3">
+                {['Voice memo support', 'Project tracking', 'Automatische berekening'].map((item, i) => (
+                  <li key={i} className="flex items-center text-gray-700 dark:text-gray-300">
+                    <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-purple-950/30 dark:to-indigo-950/30 rounded-3xl p-8 flex items-center justify-center">
+              <div className="w-full max-w-sm">
+                <div className="bg-white dark:bg-slate-900/50 dark:backdrop-blur-sm rounded-2xl shadow-xl p-6">
+                  <h4 className="font-bold text-gray-900 dark:text-white mb-4">Vandaag</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg">
+                      <div>
+                        <div className="font-semibold text-gray-900 dark:text-white">Website Project</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">09:00 - 12:30</div>
+                      </div>
+                      <div className="text-lg font-bold text-indigo-600">3.5u</div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
+                      <div>
+                        <div className="font-semibold text-gray-900 dark:text-white">Consultancy</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">14:00 - 17:00</div>
+                      </div>
+                      <div className="text-lg font-bold text-purple-600">3.0u</div>
+                    </div>
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                      <span className="font-bold text-gray-900 dark:text-white">Totaal</span>
+                      <span className="text-2xl font-bold text-indigo-600">6.5u</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Feature 4: Klantenbeheer */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-24"
+          >
+            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 rounded-3xl p-8 flex items-center justify-center">
+              <div className="w-full max-w-sm">
+                <div className="bg-white dark:bg-slate-900/50 dark:backdrop-blur-sm rounded-2xl shadow-xl p-6">
+                  <h4 className="font-bold text-gray-900 dark:text-white mb-4">Mijn Klanten</h4>
+                  <div className="space-y-3">
+                    {[
+                      { name: 'Jan Jansen', company: 'TechStart', status: '€5.200' },
+                      { name: 'Marieke Bakker', company: 'DesignCo', status: '€3.100' },
+                      { name: 'Thomas de Vries', company: 'WebExpert', status: '€2.400' }
+                    ].map((client, i) => (
+                      <div key={i} className="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mr-3">
+                          <span className="text-white font-semibold">{client.name.charAt(0)}</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-semibold text-gray-900 dark:text-white">{client.name}</div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">{client.company}</div>
+                        </div>
+                        <div className="text-sm font-bold text-indigo-600">{client.status}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/50 rounded-2xl flex items-center justify-center mb-6">
+                <Users className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Klantenbeheer</h3>
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                Centraal overzicht van alle klanten met automatische statistieken en inzichten.
+              </p>
+              <ul className="space-y-3">
+                {['Contact beheer', 'Omzet tracking', 'Geschiedenis overzicht'].map((item, i) => (
+                  <li key={i} className="flex items-center text-gray-700 dark:text-gray-300">
+                    <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </motion.div>
+
+          {/* Feature 5: Automatiseringen */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-24"
+          >
+            <div>
+              <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-2xl flex items-center justify-center mb-6">
+                <Sparkles className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Automatiseringen</h3>
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                Stel slimme workflows in die automatisch draaien. Van reminders tot rapporten.
+              </p>
+              <ul className="space-y-3">
+                {['Scheduled tasks', 'Email automatisch', 'Smart reminders'].map((item, i) => (
+                  <li key={i} className="flex items-center text-gray-700 dark:text-gray-300">
+                    <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-purple-950/30 dark:to-indigo-950/30 rounded-3xl p-8 flex items-center justify-center">
+              <div className="w-full max-w-sm">
+                <div className="bg-white dark:bg-slate-900/50 dark:backdrop-blur-sm rounded-2xl shadow-xl p-6">
+                  <h4 className="font-bold text-gray-900 dark:text-white mb-4">Actieve Automatiseringen</h4>
+                  <div className="space-y-3">
+                    {[
+                      { name: 'Weekrapportage', schedule: 'Elke maandag', icon: '📊' },
+                      { name: 'Factuur Reminder', schedule: 'Bij 30 dagen', icon: '📧' },
+                      { name: 'Sprint Samenvatting', schedule: 'Elke vrijdag', icon: '📅' }
+                    ].map((auto, i) => (
+                      <div key={i} className="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div className="text-2xl mr-3">{auto.icon}</div>
+                        <div className="flex-1">
+                          <div className="font-semibold text-gray-900 dark:text-white">{auto.name}</div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">{auto.schedule}</div>
+                        </div>
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Feature 6: Integraties */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+          >
+            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 rounded-3xl p-8 flex items-center justify-center">
+              <div className="w-full">
+                <div className="grid grid-cols-3 gap-4">
+                  {['Google', 'Outlook', 'Mollie', 'Calendar', 'Drive', 'Slack'].map((service, i) => (
+                    <div key={i} className="bg-white dark:bg-slate-900/50 dark:backdrop-blur-sm rounded-xl p-4 shadow-md flex flex-col items-center hover:shadow-lg transition-shadow">
+                      <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center mb-2">
+                        <span className="text-white font-bold text-sm">{service.charAt(0)}</span>
+                      </div>
+                      <span className="text-xs font-semibold text-gray-900 dark:text-white">{service}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div>
+              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/50 rounded-2xl flex items-center justify-center mb-6">
+                <Globe className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Integraties</h3>
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                Koppel met de tools die je al gebruikt. Google, Outlook, Mollie en meer.
+              </p>
+              <ul className="space-y-3">
+                {['OAuth authenticatie', 'API connecties', 'Data synchronisatie'].map((item, i) => (
+                  <li key={i} className="flex items-center text-gray-700 dark:text-gray-300">
+                    <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-24 bg-gradient-to-b from-white via-indigo-50/10 to-indigo-100/40 dark:from-slate-950 dark:via-black dark:to-slate-950 transition-colors duration-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-20"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+              Wat ZZP'ers zeggen over ZzpChat
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              Echte feedback van echte gebruikers
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Testimonial 1 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              whileHover={{ y: -4, scale: 1.02 }}
+              className="bg-white dark:bg-slate-900/50 dark:backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-slate-800 transition-all duration-300"
+            >
+              <div className="flex items-center mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                ))}
+              </div>
+              <p className="text-gray-700 dark:text-gray-300 mb-6 italic">
+                "Sinds ik ZzpChat gebruik, maak ik facturen in minder dan 2 minuten. Ik heb zoveel tijd bespaard!"
+              </p>
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mr-4">
+                  <span className="text-white font-semibold">MJ</span>
+                </div>
+                <div>
+                  <div className="font-semibold text-gray-900 dark:text-white">Marieke van Dijk</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Freelance Coach</div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Testimonial 2 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              whileHover={{ y: -4, scale: 1.02 }}
+              className="bg-white dark:bg-slate-900/50 dark:backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-slate-800 transition-all duration-300"
+            >
+              <div className="flex items-center mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                ))}
+              </div>
+              <p className="text-gray-700 dark:text-gray-300 mb-6 italic">
+                "De WhatsApp integratie is briljant. Ik kan alles regelen onderweg naar klanten. Echt een game changer!"
+              </p>
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mr-4">
+                  <span className="text-white font-semibold">TV</span>
+                </div>
+                <div>
+                  <div className="font-semibold text-gray-900 dark:text-white">Thomas de Vries</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Web Developer</div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Testimonial 3 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              whileHover={{ y: -4, scale: 1.02 }}
+              className="bg-white dark:bg-slate-900/50 dark:backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-slate-800 transition-all duration-300"
+            >
+              <div className="flex items-center mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                ))}
+              </div>
+              <p className="text-gray-700 dark:text-gray-300 mb-6 italic">
+                "Eindelijk een tool die écht begrijpt hoe ZZP'ers werken. De AI is slim en snapt precies wat ik bedoel."
+              </p>
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mr-4">
+                  <span className="text-white font-semibold">SB</span>
+                </div>
+                <div>
+                  <div className="font-semibold text-gray-900 dark:text-white">Sophie Bakker</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Grafisch Ontwerper</div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-r from-indigo-600 to-purple-600">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Content */}
-            <div className="text-center lg:text-left">
-              <h2 className="text-4xl font-bold text-white mb-6">
-                Klaar om ZzpChat te proberen?
-              </h2>
-              <p className="text-xl text-indigo-100 mb-8">
-                Start je WhatsApp AI-assistent in een oogwenk om de kracht van ZzpChat te ervaren. 
-                Probeer gratis uit – geen creditcard nodig.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <a
-                  href="/login"
-                  className="bg-white text-indigo-600 px-8 py-4 rounded-2xl text-lg font-semibold hover:bg-gray-50 transition-all transform hover:scale-105 shadow-xl inline-block"
-                >
-                  Probeer Gratis Uit – Geen Creditcard Nodig!
-                </a>
-                <a
-                  href="/dashboard/whatsapp-setup"
-                  className="bg-white/10 backdrop-blur-sm text-white border-2 border-white/30 px-8 py-4 rounded-2xl text-lg font-semibold hover:bg-white/20 transition-all transform hover:scale-105 inline-block"
-                >
-                  WhatsApp Setup
-                </a>
-              </div>
-            </div>
+      {/* Final CTA Section */}
+      <section className="py-24 bg-gradient-to-r from-indigo-600 to-purple-600 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 left-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+        </div>
 
-            {/* QR Code */}
-            <div className="flex flex-col items-center justify-center">
-              <div className="relative">
-                <QRCode 
-                  size="lg" 
-                  variant="cta" 
-                  className="transform hover:scale-105 transition-transform duration-300 hidden sm:block" 
-                />
-                <QRCode 
-                  size="md" 
-                  variant="cta" 
-                  className="transform hover:scale-105 transition-transform duration-300 sm:hidden" 
-                />
-                
-                {/* Floating elements around QR */}
-                <div className="absolute -top-4 -left-4 w-8 h-8 bg-white/20 rounded-full animate-pulse"></div>
-                <div className="absolute -bottom-4 -right-4 w-6 h-6 bg-white/30 rounded-full animate-pulse delay-500"></div>
-                <div className="absolute top-1/2 -right-8 w-4 h-4 bg-white/25 rounded-full animate-pulse delay-1000"></div>
-              </div>
-              
-              {/* Alternative text for mobile */}
-              <div className="mt-4 lg:hidden">
-                <p className="text-white/70 text-center text-sm">
-                  Scan de QR-code met je telefoon camera of WhatsApp om direct te beginnen
-                </p>
-              </div>
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Klaar om je administratie slimmer te maken?
+            </h2>
+            <p className="text-xl text-indigo-100 mb-12 max-w-3xl mx-auto">
+              Start vandaag nog met ZzpChat en laat de AI het werk doen. Geen creditcard nodig.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <motion.a
+                href="/login"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                animate={{
+                  boxShadow: [
+                    '0 0 20px rgba(255, 255, 255, 0.3)',
+                    '0 0 40px rgba(255, 255, 255, 0.6)',
+                    '0 0 20px rgba(255, 255, 255, 0.3)'
+                  ]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="bg-white text-indigo-600 px-8 py-4 rounded-2xl text-lg font-semibold hover:bg-gray-50 transition-all inline-block"
+              >
+                Start gratis
+              </motion.a>
+              <motion.a
+                href="#features"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-white/10 backdrop-blur-sm text-white border-2 border-white/30 px-8 py-4 rounded-2xl text-lg font-semibold hover:bg-white/20 transition-all inline-block"
+              >
+                Bekijk demo
+              </motion.a>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -728,3 +933,4 @@ export default function Home() {
     </div>
   )
 }
+
