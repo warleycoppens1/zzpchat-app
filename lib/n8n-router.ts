@@ -599,28 +599,39 @@ async function handleAIChat(parameters: any, context: WorkflowContext): Promise<
       return { success: false, error: 'message is required' }
     }
 
-    // Analyze intent
+    const conversationHistory = Array.isArray(parameters.conversationHistory)
+      ? parameters.conversationHistory
+      : []
+
+    const historySummary = conversationHistory
+      .slice(-5)
+      .map((entry: any) => `${entry.role || 'user'}: ${entry.content}`)
+      .join('\n')
+
+    // Analyze intent with lightweight history context
     const intentResult = await aiAgent.analyzeIntent(
       parameters.message,
-      context.userId,
-      parameters.conversationHistory || []
+      historySummary
     )
 
-    // Generate response
+    // Generate response reusing the same conversation history
     const response = await aiAgent.generateResponse(
       parameters.message,
       context.userId,
-      parameters.conversationHistory || []
+      conversationHistory
     )
+
+    const intentExtras = intentResult as any
 
     return {
       success: true,
       data: {
         response: response.response,
         intent: intentResult.intent,
-        action: intentResult.action,
-        reasoning: intentResult.reasoning,
-        confidence: intentResult.confidence
+        action: intentExtras?.action ?? null,
+        reasoning: intentExtras?.reasoning ?? response.reasoning,
+        confidence: intentResult.confidence,
+        entities: intentResult.entities
       },
       message: 'AI response generated'
     }

@@ -135,6 +135,10 @@ Antwoord in JSON format: {"intent": "CREATE_INVOICE", "confidence": 0.95, "entit
           model: 'gpt-3.5-turbo', // Use faster model for intent analysis
           messages: [
             { role: 'system', content: systemPrompt },
+            ...(context
+              ? [{ role: 'assistant', content: `Bestaande context:
+${context}` }]
+              : []),
             { role: 'user', content: userMessage }
           ],
           temperature: 0.1,
@@ -493,6 +497,73 @@ Genereer een professionele, complete draft die klaar is voor gebruik.`
     } catch (error) {
       console.error('Error searching user files:', error)
       return []
+    }
+  }
+
+  /**
+   * Generate a conversational response for WhatsApp style interactions.
+   * Mirrors the behaviour of the `/api/ai/chat` route but in a simplified form
+   * so external automation (n8n) can stay in sync with the in-app assistant.
+   */
+  async generateResponse(
+    userMessage: string,
+    userId?: string,
+    conversationHistory: Array<{ role: string; content: string }> = []
+  ): Promise<{ response: string; reasoning: string; action?: any }> {
+    this.ensureApiKey()
+
+    const historySnippet = Array.isArray(conversationHistory)
+      ? conversationHistory
+          .slice(-5)
+          .map((entry) => `${entry.role === 'assistant' ? 'AI' : 'Gebruiker'}: ${entry.content}`)
+          .join('\n')
+      : ''
+
+    const systemPrompt = `Je bent ZzpChat, een Nederlandse AI-assistent voor ZZP'ers.
+
+Context gebruiker:
+- User ID: ${userId ?? 'onbekend'}
+- Vorige berichten (laatste 5):
+${historySnippet || 'Geen geschiedenis beschikbaar'}
+
+Taak: geef een concreet, behulpzaam antwoord. Leg kort uit waarom je dit advies geeft
+en geef vervolgstappen indien relevant.`
+
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.openaiApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage }
+          ],
+          temperature: 0.4,
+          max_tokens: 400
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      const content = data.choices?.[0]?.message?.content?.trim()
+
+      return {
+        response: content || 'Ik kon geen geldig antwoord genereren. Probeer het later opnieuw.',
+        reasoning: 'Response gegenereerd via OpenAI chat completion'
+      }
+    } catch (error) {
+      console.error('AI conversational response error:', error)
+      return {
+        response: 'Er ging iets mis bij het genereren van het antwoord. Probeer het later opnieuw.',
+        reasoning: 'OpenAI request failed'
+      }
     }
   }
 }

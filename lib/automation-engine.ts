@@ -1,5 +1,18 @@
 import { prisma } from './prisma'
 
+/**
+ * High-level orchestrator for user-defined automations.
+ *
+ * Lifecycle per cron tick:
+ * 1. Fetch every enabled automation whose `nextRunAt` is due (schedule trigger)
+ * 2. Validate guard conditions before doing any heavy work
+ * 3. Collect the target items (invoices, contacts, etc.) based on automation category
+ * 4. Execute action pipelines sequentially and record granular success/failure counts
+ * 5. Persist an automation_run record + bump `nextRunAt`
+ *
+ * The engine is intentionally conservative — it skips work when conditions are not met
+ * and never throws past the top-level loop, so the cron endpoint can return quickly.
+ */
 export class AutomationEngine {
   // Run all scheduled automations
   static async runScheduledAutomations() {

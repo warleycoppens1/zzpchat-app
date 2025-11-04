@@ -1,6 +1,14 @@
 /**
- * Browser Automation Controller
- * Safe browser automation using Puppeteer for AI assistant
+ * Thin wrapper around Puppeteer used by the AI assistant to automate websites.
+ *
+ * Features:
+ * - Domain allow-list (`DEFAULT_ALLOWED_DOMAINS`) so the AI cannot browse arbitrary sites
+ * - Lazily opens a single browser instance per request lifecycle
+ * - Exposes sequential actions (navigate, click, type, etc.) with deterministic timeouts
+ * - Always captures screenshots as base64 for audit/debugging
+ *
+ * Do not expose this class directly to user input — route everything through the
+ * AI tool handlers where arguments are validated and sanitized.
  */
 
 import puppeteer, { Browser, Page } from 'puppeteer'

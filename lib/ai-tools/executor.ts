@@ -1,6 +1,15 @@
 /**
- * AI Tool Execution Engine
- * Executes tools called by the AI
+ * Central execution engine for AI-triggered tool calls.
+ *
+ * Responsibilities:
+ * - Map OpenAI tool names to strongly-typed handlers in this module
+ * - Guard every handler with user context (session `userId`)
+ * - Translate arguments from the LLM into integration specific payloads
+ * - Return consistent `{ success, data, message }` envelopes to the caller
+ *
+ * Keep handlers cohesive: they should fetch/transform data and always catch
+ * provider errors so the AI receives actionable feedback instead of crashing
+ * the entire conversation.
  */
 
 import { GmailService } from '../integrations/google/gmail'
