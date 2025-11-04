@@ -1,34 +1,48 @@
 import crypto from 'crypto'
 
 const algorithm = 'aes-256-gcm'
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!
 
-if (!ENCRYPTION_KEY) {
-  throw new Error('ENCRYPTION_KEY environment variable is required')
-}
+let cachedKey: Buffer | null = null
 
-// Convert hex string to buffer
-function getKey(): Buffer {
-  if (ENCRYPTION_KEY.length === 64) {
-    // 32 bytes hex encoded
-    return Buffer.from(ENCRYPTION_KEY, 'hex')
-  } else if (ENCRYPTION_KEY.length === 32) {
-    // 32 bytes ascii
-    return Buffer.from(ENCRYPTION_KEY, 'utf8')
-  } else {
-    // Hash to get 32 bytes
-    return crypto.createHash('sha256').update(ENCRYPTION_KEY).digest()
+function resolveKey(): string {
+  const value = process.env.ENCRYPTION_KEY
+
+  if (!value) {
+    throw new Error('ENCRYPTION_KEY environment variable is required')
   }
+
+  return value
 }
 
-const key = getKey()
+function deriveKey(rawKey: string): Buffer {
+  if (rawKey.length === 64) {
+    // 32 bytes hex encoded
+    return Buffer.from(rawKey, 'hex')
+  }
+  if (rawKey.length === 32) {
+    // 32 bytes ascii
+    return Buffer.from(rawKey, 'utf8')
+  }
+
+  // Hash to get 32 bytes
+  return crypto.createHash('sha256').update(rawKey).digest()
+}
+
+function getKey(): Buffer {
+  if (cachedKey) {
+    return cachedKey
+  }
+
+  cachedKey = deriveKey(resolveKey())
+  return cachedKey
+}
 
 /**
  * Encrypt sensitive data (like OAuth tokens)
  */
 export function encrypt(text: string): string {
   const iv = crypto.randomBytes(16)
-  const cipher = crypto.createCipheriv(algorithm, key, iv)
+  const cipher = crypto.createCipheriv(algorithm, getKey(), iv)
 
   let encrypted = cipher.update(text, 'utf8', 'hex')
   encrypted += cipher.final('hex')
@@ -52,7 +66,7 @@ export function decrypt(encrypted: string): string {
   const authTag = Buffer.from(parts[1], 'hex')
   const encryptedText = parts[2]
 
-  const decipher = crypto.createDecipheriv(algorithm, key, iv)
+  const decipher = crypto.createDecipheriv(algorithm, getKey(), iv)
   decipher.setAuthTag(authTag)
 
   let decrypted = decipher.update(encryptedText, 'hex', 'utf8')
