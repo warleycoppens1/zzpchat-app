@@ -43,7 +43,7 @@
   "crons": [
     {
       "path": "/api/cron/run-automations",
-      "schedule": "* * * * *"
+      "schedule": "0 3 * * *"
     }
   ]
 }
